@@ -1,3 +1,6 @@
+// Copyright 2026 Bitwise Media Group Ltd.
+// SPDX-License-Identifier: MIT
+
 package token
 
 import (
@@ -49,14 +52,14 @@ var fixedNow = time.Date(2026, 6, 30, 12, 0, 0, 0, time.UTC)
 
 // recordingProvisioner builds a Provisioner that records calls and returns the
 // given token from ReadToken.
-func recordingProvisioner(tok string, readErr error) (Provisioner, *int, *int) {
+func recordingProvisioner(tok string) (Provisioner, *int, *int) {
 	opens, reads := new(int), new(int)
 	return Provisioner{
 		Hostname: "test-host",
 		OpenURL:  func(string) error { *opens++; return nil },
 		ReadToken: func() (string, error) {
 			*reads++
-			return tok, readErr
+			return tok, nil
 		},
 	}, opens, reads
 }
@@ -65,7 +68,7 @@ func TestEnsureReusesValidToken(t *testing.T) {
 	fs := newFakeStore()
 	fs.seed(t, &Record{Token: "stored-tok", Login: "octocat", Host: Host, ExpiresAt: fixedNow.Add(7 * 24 * time.Hour)})
 
-	prov, opens, reads := recordingProvisioner("new-tok", nil)
+	prov, opens, reads := recordingProvisioner("new-tok")
 	m := &Manager{
 		Store: fs,
 		Out:   io.Discard,
@@ -95,7 +98,7 @@ func TestEnsureProvisionsWhenExpired(t *testing.T) {
 	fs.seed(t, &Record{Token: "old-tok", Login: "octocat", Host: Host, ExpiresAt: fixedNow.Add(-time.Hour)})
 
 	wantExpiry := fixedNow.Add(7 * 24 * time.Hour)
-	prov, opens, reads := recordingProvisioner("github_pat_new", nil)
+	prov, opens, reads := recordingProvisioner("github_pat_new")
 	m := &Manager{
 		Store: fs,
 		Out:   io.Discard,
@@ -130,7 +133,7 @@ func TestEnsureProvisionsWhenStoredTokenRejected(t *testing.T) {
 	fs := newFakeStore()
 	fs.seed(t, &Record{Token: "revoked-tok", Login: "octocat", Host: Host, ExpiresAt: fixedNow.Add(48 * time.Hour)})
 
-	prov, opens, reads := recordingProvisioner("github_pat_new", nil)
+	prov, opens, reads := recordingProvisioner("github_pat_new")
 	m := &Manager{
 		Store: fs,
 		Out:   io.Discard,
@@ -159,7 +162,7 @@ func TestEnsureReusesOnTransientError(t *testing.T) {
 	fs := newFakeStore()
 	fs.seed(t, &Record{Token: "stored-tok", Login: "octocat", Host: Host, ExpiresAt: fixedNow.Add(48 * time.Hour)})
 
-	prov, opens, reads := recordingProvisioner("new-tok", nil)
+	prov, opens, reads := recordingProvisioner("new-tok")
 	m := &Manager{
 		Store: fs,
 		Out:   io.Discard,
@@ -185,7 +188,7 @@ func TestEnsureForceRefresh(t *testing.T) {
 	fs := newFakeStore()
 	fs.seed(t, &Record{Token: "stored-tok", Login: "octocat", Host: Host, ExpiresAt: fixedNow.Add(7 * 24 * time.Hour)})
 
-	prov, opens, reads := recordingProvisioner("github_pat_forced", nil)
+	prov, opens, reads := recordingProvisioner("github_pat_forced")
 	m := &Manager{
 		Store:    fs,
 		Out:      io.Discard,
@@ -207,7 +210,7 @@ func TestEnsureForceRefresh(t *testing.T) {
 
 func TestProvisionRejectsEmptyToken(t *testing.T) {
 	fs := newFakeStore()
-	prov, _, _ := recordingProvisioner("   ", nil)
+	prov, _, _ := recordingProvisioner("   ")
 	m := &Manager{
 		Store:    fs,
 		Out:      io.Discard,
@@ -221,7 +224,7 @@ func TestProvisionRejectsEmptyToken(t *testing.T) {
 
 func TestProvisionFallsBackToComputedExpiry(t *testing.T) {
 	fs := newFakeStore()
-	prov, _, _ := recordingProvisioner("github_pat_new", nil)
+	prov, _, _ := recordingProvisioner("github_pat_new")
 	m := &Manager{
 		Store: fs,
 		Out:   io.Discard,

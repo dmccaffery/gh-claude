@@ -1,3 +1,6 @@
+// Copyright 2026 Bitwise Media Group Ltd.
+// SPDX-License-Identifier: MIT
+
 package token
 
 import (
@@ -5,9 +8,9 @@ import (
 	"strconv"
 )
 
-// creationBaseURL is GitHub's fine-grained PAT creation page, which accepts the
-// query parameters used below to pre-fill the form.
-// https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#pre-filling-fine-grained-personal-access-token-details-using-url-parameters
+// creationBaseURL is GitHub's fine-grained PAT creation page. It accepts the query
+// parameters used below to pre-fill the form — see GitHub's docs on "pre-filling
+// fine-grained personal access token details using URL parameters".
 const creationBaseURL = "https://github.com/settings/personal-access-tokens/new"
 
 // ExpiresInDays is the requested token lifetime (GitHub allows 1–366).

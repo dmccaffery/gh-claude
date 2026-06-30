@@ -1,3 +1,6 @@
+// Copyright 2026 Bitwise Media Group Ltd.
+// SPDX-License-Identifier: MIT
+
 package token
 
 import (
@@ -49,6 +52,11 @@ func (m *Manager) validate(host, tok string) (*Identity, error) {
 	return Validate(host, tok)
 }
 
+// log and logf write user-facing diagnostics to m.Out. Write errors are ignored
+// on purpose: these are best-effort messages, not part of the program's contract.
+func (m *Manager) log(msg string)               { _, _ = fmt.Fprintln(m.Out, msg) }
+func (m *Manager) logf(format string, a ...any) { _, _ = fmt.Fprintf(m.Out, format, a...) }
+
 // Current returns the stored record (or nil if none) without provisioning.
 func (m *Manager) Current() (*Record, error) {
 	return m.load()
@@ -69,33 +77,33 @@ func (m *Manager) Ensure(forceRefresh bool, p Provisioner) (*Record, error) {
 			return nil, err
 		}
 		if rec != nil && !rec.needsRefresh(m.now()) {
-			if reused, err := m.verifyReusable(rec); reused {
-				return rec, err
+			if m.verifyReusable(rec) {
+				return rec, nil
 			}
 		}
 	}
 	return m.provision(p)
 }
 
-// verifyReusable probes a non-expired stored token. It returns (true, nil) when
-// the token is good to reuse, (false, nil) when GitHub rejected it (so we should
-// provision), and (true, nil) with a warning on transient failures (we trust the
-// stored token rather than forcing recreation when offline).
-func (m *Manager) verifyReusable(rec *Record) (bool, error) {
+// verifyReusable probes a non-expired stored token. It returns true when the
+// token is good to reuse — including on transient verification failures, where we
+// trust the stored token rather than forcing recreation while offline — and false
+// only when GitHub actively rejected it.
+func (m *Manager) verifyReusable(rec *Record) bool {
 	_, err := m.validate(rec.Host, rec.Token)
 	switch {
 	case err == nil:
 		if rec.expiringSoon(m.now()) {
-			fmt.Fprintf(m.Out, "Note: the stored token expires %s — run `gh claude login` to refresh it.\n",
+			m.logf("Note: the stored token expires %s — run `gh claude login` to refresh it.\n",
 				rec.ExpiresAt.Format(time.RFC1123))
 		}
-		return true, nil
+		return true
 	case IsAuthError(err):
-		fmt.Fprintln(m.Out, "Stored token was rejected by GitHub; creating a new one.")
-		return false, nil
+		m.log("Stored token was rejected by GitHub; creating a new one.")
+		return false
 	default:
-		fmt.Fprintf(m.Out, "Warning: could not verify the stored token (%v); using it anyway.\n", err)
-		return true, nil
+		m.logf("Warning: could not verify the stored token (%v); using it anyway.\n", err)
+		return true
 	}
 }
 
@@ -103,17 +111,17 @@ func (m *Manager) verifyReusable(rec *Record) (bool, error) {
 func (m *Manager) provision(p Provisioner) (*Record, error) {
 	url := CreationURL(p.Hostname)
 
-	fmt.Fprintln(m.Out, "A new GitHub token is needed.")
-	fmt.Fprintln(m.Out, "In the page that opens:")
-	fmt.Fprintln(m.Out, "  1. Under \"Repository access\" choose \"All repositories\".")
-	fmt.Fprintln(m.Out, "  2. Leave the pre-filled permissions (Contents: read, Issues: read/write, Pull requests: read/write).")
-	fmt.Fprintln(m.Out, "  3. Click \"Generate token\" and copy the value (starts with github_pat_).")
-	fmt.Fprintln(m.Out)
+	m.log("A new GitHub token is needed.")
+	m.log("In the page that opens:")
+	m.log("  1. Under \"Repository access\" choose \"All repositories\".")
+	m.log("  2. Leave the pre-filled permissions (Contents: read, Issues: read/write, Pull requests: read/write).")
+	m.log("  3. Click \"Generate token\" and copy the value (starts with github_pat_).")
+	m.log("")
 
 	if err := p.OpenURL(url); err != nil {
-		fmt.Fprintf(m.Out, "Open this URL in your browser:\n  %s\n\n", url)
+		m.logf("Open this URL in your browser:\n  %s\n\n", url)
 	} else {
-		fmt.Fprintf(m.Out, "Opened your browser. If nothing happened, use this URL:\n  %s\n\n", url)
+		m.logf("Opened your browser. If nothing happened, use this URL:\n  %s\n\n", url)
 	}
 
 	raw, err := p.ReadToken()
@@ -148,7 +156,7 @@ func (m *Manager) provision(p Provisioner) (*Record, error) {
 	if err := m.save(rec); err != nil {
 		return nil, err
 	}
-	fmt.Fprintf(m.Out, "Saved token for @%s (expires %s).\n", rec.Login, rec.ExpiresAt.Format(time.RFC1123))
+	m.logf("Saved token for @%s (expires %s).\n", rec.Login, rec.ExpiresAt.Format(time.RFC1123))
 	return rec, nil
 }
 

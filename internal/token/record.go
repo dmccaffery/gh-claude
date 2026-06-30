@@ -1,3 +1,8 @@
+// Copyright 2026 Bitwise Media Group Ltd.
+// SPDX-License-Identifier: MIT
+
+// Package token provisions, validates, stores, and reuses the scoped GitHub
+// token, and builds the pre-filled token-creation URL.
 package token
 
 import "time"

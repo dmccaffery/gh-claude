@@ -3,3 +3,5 @@
 # Precompiled release artifacts (gh-claude-<os>-<arch>[.exe])
 /gh-claude-*
 /dist/
+# Test coverage + results (emitted by `make test`)
+/coverage/

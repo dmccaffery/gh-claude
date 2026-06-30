@@ -1,3 +1,6 @@
+// Copyright 2026 Bitwise Media Group Ltd.
+// SPDX-License-Identifier: MIT
+
 // Command gh-claude is a GitHub CLI extension that launches Claude Code with a
 // temporary, least-privilege GitHub token (read-only on source code, read/write
 // on issues and pull requests) so Claude can work with private repositories
@@ -178,14 +181,15 @@ func newProvisioner() token.Provisioner {
 
 func warnIfFileFallback(st *store.Store) {
 	if st.IsFileFallback() {
-		fmt.Fprintln(os.Stderr, "warning: no OS keychain available; storing the token in an encrypted file (see README \"Security model\").")
+		_, _ = fmt.Fprintln(os.Stderr,
+			"warning: no OS keychain available; storing the token in an encrypted file (see README: Security model).")
 	}
 }
 
 // readToken prompts for and reads the pasted token, hiding input on a terminal.
 func readToken(in *os.File, out io.Writer) (string, error) {
-	fmt.Fprint(out, "Paste the new token (input hidden), then press Enter: ")
-	defer fmt.Fprintln(out)
+	_, _ = fmt.Fprint(out, "Paste the new token (input hidden), then press Enter: ")
+	defer func() { _, _ = fmt.Fprintln(out) }()
 
 	fd := int(in.Fd())
 	if term.IsTerminal(fd) {

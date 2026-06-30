@@ -1,3 +1,6 @@
+// Copyright 2026 Bitwise Media Group Ltd.
+// SPDX-License-Identifier: MIT
+
 // Package launch builds the child environment that wires gh and git to the
 // scoped token, then replaces the current process with Claude Code.
 package launch

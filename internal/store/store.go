@@ -1,3 +1,6 @@
+// Copyright 2026 Bitwise Media Group Ltd.
+// SPDX-License-Identifier: MIT
+
 // Package store persists a small secret blob in the most secure place available
 // on the host: the macOS Keychain or the Linux Secret Service when present, and
 // an encrypted, machine-bound file as a fallback (e.g. WSL2, where no Secret

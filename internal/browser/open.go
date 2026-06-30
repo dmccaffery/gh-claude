@@ -1,3 +1,6 @@
+// Copyright 2026 Bitwise Media Group Ltd.
+// SPDX-License-Identifier: MIT
+
 // Package browser opens a URL in the user's default browser, with a fallback
 // path for WSL2 where the Linux process must reach a Windows browser.
 package browser

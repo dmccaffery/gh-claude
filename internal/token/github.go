@@ -1,3 +1,6 @@
+// Copyright 2026 Bitwise Media Group Ltd.
+// SPDX-License-Identifier: MIT
+
 package token
 
 import (
@@ -39,7 +42,7 @@ func Validate(host, token string) (*Identity, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	var user struct {
 		Login string `json:"login"`
