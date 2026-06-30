@@ -32,25 +32,61 @@ const (
 	BackendKeychain      = "keychain"
 	BackendSecretService = "secret-service"
 	BackendFile          = "encrypted-file"
+	Backend1Password     = "1password"
 )
 
-// Store wraps a single resolved keyring backend.
+// backend is the pluggable persistence implementation behind a Store. Each OS
+// keychain, the encrypted file fallback, and the optional 1Password backend
+// implement it. It mirrors the "opaque bytes by key" contract of Store itself.
+type backend interface {
+	get(key string) ([]byte, bool, error)
+	set(key string, data []byte) error
+	delete(key string) error
+}
+
+// Store wraps a single resolved persistence backend.
 type Store struct {
-	ring    keyring.Keyring
+	impl    backend
 	backend string
+	detail  string
 }
 
 // Backend reports which backend was selected (see the Backend* constants).
 func (s *Store) Backend() string { return s.backend }
 
+// Detail reports an optional human-readable qualifier for the backend (e.g. the
+// 1Password vault), or "" when there is none.
+func (s *Store) Detail() string { return s.detail }
+
 // IsFileFallback reports whether the store fell back to the on-disk encrypted
 // file because no OS keychain was usable. Callers may warn the user.
 func (s *Store) IsFileFallback() bool { return s.backend == BackendFile }
 
-// New resolves and opens the best available backend for this host. It prefers
-// the native OS keychain and falls back to the encrypted file backend if the
-// keychain cannot be reached (the common WSL2 case).
-func New() (*Store, error) {
+// Options configures backend selection. The zero value preserves the default,
+// env-driven behavior; CLI flags populate it to override the environment.
+type Options struct {
+	// UseOnePassword forces the 1Password backend on (e.g. the --op flag), in
+	// addition to the GH_CLAUDE_STORE environment variable.
+	UseOnePassword bool
+	// Vault overrides the 1Password vault (e.g. the --vault flag). When empty it
+	// falls back to GH_CLAUDE_OP_VAULT and then the default vault.
+	Vault string
+}
+
+// New resolves and opens the best available backend for this host. When the user
+// opts into 1Password (--op or GH_CLAUDE_STORE), that backend is used exclusively
+// and an unreachable op is a hard error. Otherwise it prefers the native OS
+// keychain and falls back to the encrypted file backend if the keychain cannot be
+// reached (the common WSL2 case).
+func New(opts Options) (*Store, error) {
+	if opts.UseOnePassword || onePasswordRequested() {
+		b, err := newOPBackend(opts)
+		if err != nil {
+			return nil, fmt.Errorf("1Password store requested but unavailable: %w", err)
+		}
+		return &Store{impl: b, backend: Backend1Password, detail: "vault: " + b.vault}, nil
+	}
+
 	var lastErr error
 	for _, b := range preferredBackends() {
 		ring, err := open(b)
@@ -65,7 +101,7 @@ func New() (*Store, error) {
 			lastErr = err
 			continue
 		}
-		return &Store{ring: ring, backend: backendName(b)}, nil
+		return &Store{impl: keyringBackend{ring: ring}, backend: backendName(b)}, nil
 	}
 	if lastErr == nil {
 		lastErr = errors.New("no usable secret storage backend found")
@@ -75,8 +111,23 @@ func New() (*Store, error) {
 
 // Get returns the bytes stored under key. The boolean is false (with a nil
 // error) when no item exists for the key.
-func (s *Store) Get(key string) ([]byte, bool, error) {
-	item, err := s.ring.Get(key)
+func (s *Store) Get(key string) ([]byte, bool, error) { return s.impl.get(key) }
+
+// Set stores data under key, replacing any existing value.
+func (s *Store) Set(key string, data []byte) error { return s.impl.set(key, data) }
+
+// Delete removes the item under key. Removing a missing key is not an error.
+func (s *Store) Delete(key string) error { return s.impl.delete(key) }
+
+// keyringBackend persists items in an OS keychain (macOS Keychain, Windows
+// Credential Manager, Linux Secret Service) or the encrypted file fallback, via
+// the 99designs/keyring library.
+type keyringBackend struct {
+	ring keyring.Keyring
+}
+
+func (k keyringBackend) get(key string) ([]byte, bool, error) {
+	item, err := k.ring.Get(key)
 	if errors.Is(err, keyring.ErrKeyNotFound) {
 		return nil, false, nil
 	}
@@ -86,9 +137,8 @@ func (s *Store) Get(key string) ([]byte, bool, error) {
 	return item.Data, true, nil
 }
 
-// Set stores data under key, replacing any existing value.
-func (s *Store) Set(key string, data []byte) error {
-	return s.ring.Set(keyring.Item{
+func (k keyringBackend) set(key string, data []byte) error {
+	return k.ring.Set(keyring.Item{
 		Key:         key,
 		Data:        data,
 		Label:       ServiceName,
@@ -96,11 +146,11 @@ func (s *Store) Set(key string, data []byte) error {
 	})
 }
 
-// Delete removes the item under key. Removing a missing key is not an error.
+// delete removes the item under key. Removing a missing key is not an error.
 // (The file backend reports a missing item as an OS not-exist error rather than
 // keyring.ErrKeyNotFound, so both are tolerated.)
-func (s *Store) Delete(key string) error {
-	err := s.ring.Remove(key)
+func (k keyringBackend) delete(key string) error {
+	err := k.ring.Remove(key)
 	if err == nil || errors.Is(err, keyring.ErrKeyNotFound) || errors.Is(err, os.ErrNotExist) {
 		return nil
 	}

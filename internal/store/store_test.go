@@ -25,7 +25,7 @@ func fileStore(t *testing.T, dir string) *Store {
 	if err != nil {
 		t.Fatalf("open file backend: %v", err)
 	}
-	return &Store{ring: ring, backend: BackendFile}
+	return &Store{impl: keyringBackend{ring: ring}, backend: BackendFile}
 }
 
 func TestStoreRoundTrip(t *testing.T) {

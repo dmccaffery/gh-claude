@@ -10,7 +10,8 @@ The token is:
 - **read/write on issues and pull requests**,
 - **scoped to all repositories you can access**,
 - **expiring after 7 days**, and
-- **stored in your OS keychain** (or an encrypted file where no keychain exists, e.g. WSL2).
+- **stored in your OS keychain** (or an encrypted file where no keychain exists, e.g. WSL2),
+  with [1Password as an optional alternative](#using-1password-optional).
 
 Claude only ever receives the scoped token through the `GITHUB_TOKEN` environment
 variable — it never touches your keychain or your real `gh` credential.
@@ -54,6 +55,9 @@ gh claude logout
 
 # Force a new token, then launch:
 gh claude --refresh
+
+# Store the token in 1Password instead of the OS keychain (see "Using 1Password"):
+gh claude --op
 ```
 
 On first run (or after expiry) your browser opens to the GitHub token page. In it:
@@ -97,6 +101,50 @@ When launching Claude, `gh-claude` adds to the child process environment only
   this is defense-in-depth, **not** a hardware-backed secret — the machine id is
   not itself secret, so the file's permissions are the primary protection. Run
   `gh claude status` to see which backend is in use.
+
+## Using 1Password (optional)
+
+If you prefer to keep the token in [1Password](https://1password.com) instead of
+the OS keychain — handy for a consistent store across machines, and a real secure
+store on **WSL** (where there is otherwise no keychain) — `gh-claude` can store the
+token there via the [1Password CLI](https://developer.1password.com/docs/cli/) (`op`).
+This is **opt-in** and does **not** replace the OS keychain; the keychain/encrypted-file
+backends remain the default when you don't enable it.
+
+**Prerequisites:**
+
+1. Install the [`op` CLI](https://developer.1password.com/docs/cli/get-started/) and
+   the 1Password desktop app, and sign in.
+2. Enable the desktop app integration: 1Password → **Settings → Developer** →
+   **Integrate with 1Password CLI** (turn on *"Connect with 1Password CLI"*). On
+   **WSL**, follow 1Password's [WSL setup](https://developer.1password.com/docs/cli/about-biometric-unlock/#turn-on-biometric-unlock-in-the-cli)
+   so `op` in your distro talks to the Windows desktop app.
+
+**Enable it** with the `--op` flag (available on every command):
+
+```sh
+gh claude --op                          # use 1Password for this launch
+gh claude --op --vault "Engineering"    # choose a vault (default "Private")
+gh claude login --op                    # works on subcommands too
+gh claude status --op                   # Storage:  1password (vault: Private)
+```
+
+Or set it once for the shell session with environment variables:
+
+```sh
+export GH_CLAUDE_STORE=1password      # opt in (also accepts "op")
+export GH_CLAUDE_OP_VAULT="Private"   # vault to use (name or ID; default "Private")
+export GH_CLAUDE_OP_ACCOUNT="my-team" # optional: account for multi-account setups
+```
+
+Flags take precedence over the environment variables, and the token is stored as
+an item named `gh-claude:github.com`.
+
+The token is kept in a single concealed field of an *API Credential* item, and is
+only ever passed to `op` over stdin (never on the command line). Accessing it
+prompts for 1Password's approval (biometric/system unlock, valid for a short
+inactivity window). When `GH_CLAUDE_STORE` is set but `op` is missing or not
+signed in, `gh-claude` fails with a clear error rather than silently falling back.
 
 ## Development
 

@@ -43,19 +43,40 @@ encrypted file on systems without one, such as WSL2). An unexpired token is
 reused; a new one is created in your browser only when needed. Claude is then
 launched in the current directory with the token wired into gh and git.
 
+Use --op to store the token in 1Password (via the op CLI) instead of the OS
+keychain, and --vault to choose the vault.
+
 Pass arguments through to claude after "--", e.g.:
   gh claude -- --resume`,
 		Args:          cobra.ArbitraryArgs,
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runLaunch(refresh, passthroughArgs(cmd, args))
+			return runLaunch(refresh, storeOptions(cmd), passthroughArgs(cmd, args))
 		},
 	}
 	root.Flags().BoolVar(&refresh, "refresh", false, "force creating a new token even if a valid one is stored")
+	addStoreFlags(root)
 
 	root.AddCommand(loginCmd(), logoutCmd(), statusCmd())
 	return root
+}
+
+// addStoreFlags registers the persistent flags that select the secret store, so
+// they apply to `gh claude` and every subcommand.
+func addStoreFlags(cmd *cobra.Command) {
+	cmd.PersistentFlags().Bool("op", false,
+		"store the token in 1Password via the op CLI (instead of the OS keychain)")
+	cmd.PersistentFlags().String("vault", "",
+		`1Password vault for --op (default "Private"; overrides GH_CLAUDE_OP_VAULT)`)
+}
+
+// storeOptions reads the store-selection flags from cmd (or any subcommand that
+// inherits them).
+func storeOptions(cmd *cobra.Command) store.Options {
+	useOP, _ := cmd.Flags().GetBool("op")
+	vault, _ := cmd.Flags().GetString("vault")
+	return store.Options{UseOnePassword: useOP, Vault: vault}
 }
 
 func loginCmd() *cobra.Command {
@@ -65,8 +86,8 @@ func loginCmd() *cobra.Command {
 		Args:          cobra.NoArgs,
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		RunE: func(*cobra.Command, []string) error {
-			mgr, st, err := newManager()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			mgr, st, err := newManager(storeOptions(cmd))
 			if err != nil {
 				return err
 			}
@@ -88,8 +109,8 @@ func logoutCmd() *cobra.Command {
 		Args:          cobra.NoArgs,
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		RunE: func(*cobra.Command, []string) error {
-			mgr, _, err := newManager()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			mgr, _, err := newManager(storeOptions(cmd))
 			if err != nil {
 				return err
 			}
@@ -109,8 +130,8 @@ func statusCmd() *cobra.Command {
 		Args:          cobra.NoArgs,
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		RunE: func(*cobra.Command, []string) error {
-			mgr, st, err := newManager()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			mgr, st, err := newManager(storeOptions(cmd))
 			if err != nil {
 				return err
 			}
@@ -118,7 +139,11 @@ func statusCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			fmt.Printf("Storage:  %s\n", st.Backend())
+			storage := st.Backend()
+			if d := st.Detail(); d != "" {
+				storage = fmt.Sprintf("%s (%s)", storage, d)
+			}
+			fmt.Printf("Storage:  %s\n", storage)
 			if rec == nil {
 				fmt.Println("Token:    none stored — run `gh claude` to create one")
 				return nil
@@ -148,8 +173,8 @@ func passthroughArgs(cmd *cobra.Command, args []string) []string {
 	return args
 }
 
-func runLaunch(refresh bool, claudeArgs []string) error {
-	mgr, st, err := newManager()
+func runLaunch(refresh bool, opts store.Options, claudeArgs []string) error {
+	mgr, st, err := newManager(opts)
 	if err != nil {
 		return err
 	}
@@ -162,8 +187,8 @@ func runLaunch(refresh bool, claudeArgs []string) error {
 	return launch.Run(rec.Token, claudeArgs)
 }
 
-func newManager() (*token.Manager, *store.Store, error) {
-	st, err := store.New()
+func newManager(opts store.Options) (*token.Manager, *store.Store, error) {
+	st, err := store.New(opts)
 	if err != nil {
 		return nil, nil, err
 	}
