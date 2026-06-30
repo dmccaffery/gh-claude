@@ -1,0 +1,5 @@
+# Local dev build of the extension binary
+/gh-claude
+# Precompiled release artifacts (gh-claude-<os>-<arch>[.exe])
+/gh-claude-*
+/dist/
