@@ -103,8 +103,7 @@ func execSecRunner(path string) secRunner {
 		cmd.Stderr = &stderr
 		if err := cmd.Run(); err != nil {
 			code := -1
-			var ee *exec.ExitError
-			if errors.As(err, &ee) {
+			if ee, ok := errors.AsType[*exec.ExitError](err); ok {
 				code = ee.ExitCode()
 			}
 			return stdout.Bytes(), &secError{err: err, code: code, stderr: stderr.String()}

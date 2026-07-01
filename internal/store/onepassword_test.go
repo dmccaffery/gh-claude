@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -178,7 +179,7 @@ func TestOPBackendSetDeletesBeforeCreate(t *testing.T) {
 	if err := b.set("github.com", []byte("v")); err != nil {
 		t.Fatal(err)
 	}
-	var deleteIdx, createIdx = -1, -1
+	deleteIdx, createIdx := -1, -1
 	for i, c := range f.calls {
 		switch {
 		case len(c.args) >= 2 && c.args[0] == "item" && c.args[1] == "delete":
@@ -253,12 +254,7 @@ func TestResolveVault(t *testing.T) {
 }
 
 func contains(ss []string, want string) bool {
-	for _, s := range ss {
-		if s == want {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(ss, want)
 }
 
 func flagValue(ss []string, flag, value string) bool {

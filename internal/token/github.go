@@ -72,8 +72,7 @@ func identityFrom(login string, header http.Header) *Identity {
 // IsAuthError reports whether err is a GitHub rejection of the credential
 // itself (401/403), as opposed to a transient/network failure.
 func IsAuthError(err error) bool {
-	var httpErr *api.HTTPError
-	if errors.As(err, &httpErr) {
+	if httpErr, ok := errors.AsType[*api.HTTPError](err); ok {
 		return httpErr.StatusCode == http.StatusUnauthorized ||
 			httpErr.StatusCode == http.StatusForbidden
 	}
