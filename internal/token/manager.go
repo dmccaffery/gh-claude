@@ -107,6 +107,11 @@ func (m *Manager) verifyReusable(rec *Record) bool {
 	}
 }
 
+// maxProvisionAttempts caps how many times we re-prompt for a pasted token that
+// is empty, rejected by GitHub, or doesn't match the required type/expiry, so a
+// non-interactive stdin (EOF) can't loop forever.
+const maxProvisionAttempts = 3
+
 // provision runs the interactive create-and-store flow.
 func (m *Manager) provision(p Provisioner) (*Record, error) {
 	url := CreationURL(p.Hostname)
@@ -124,33 +129,9 @@ func (m *Manager) provision(p Provisioner) (*Record, error) {
 		m.logf("Opened your browser. If nothing happened, use this URL:\n  %s\n\n", url)
 	}
 
-	raw, err := p.ReadToken()
+	rec, err := m.readValidToken(p, url)
 	if err != nil {
 		return nil, err
-	}
-	tok := strings.TrimSpace(raw)
-	if tok == "" {
-		return nil, errors.New("no token was entered")
-	}
-
-	id, err := m.validate(Host, tok)
-	if err != nil {
-		if IsAuthError(err) {
-			return nil, fmt.Errorf("the pasted token was rejected by GitHub: %w", authErrorHint(err))
-		}
-		return nil, fmt.Errorf("could not verify the pasted token: %w", err)
-	}
-
-	now := m.now()
-	rec := &Record{
-		Token:     tok,
-		Login:     id.Login,
-		Host:      Host,
-		CreatedAt: now,
-		ExpiresAt: id.ExpiresAt,
-	}
-	if rec.ExpiresAt.IsZero() {
-		rec.ExpiresAt = now.Add(ExpiresInDays * 24 * time.Hour)
 	}
 
 	if err := m.save(rec); err != nil {
@@ -158,6 +139,64 @@ func (m *Manager) provision(p Provisioner) (*Record, error) {
 	}
 	m.logf("Saved token for @%s (expires %s).\n", rec.Login, rec.ExpiresAt.Format(time.RFC1123))
 	return rec, nil
+}
+
+// readValidToken prompts for a token, retrying on recoverable failures — empty
+// input, a GitHub auth rejection (likely a mis-paste), or a token whose type or
+// expiry doesn't match what the creation form pre-populated. It returns a
+// ready-to-store Record, or an error once the attempts are exhausted or a
+// non-recoverable (transient/network) failure occurs.
+func (m *Manager) readValidToken(p Provisioner, url string) (*Record, error) {
+	var lastErr error
+	for attempt := 1; attempt <= maxProvisionAttempts; attempt++ {
+		if attempt > 1 {
+			m.logf("Recreate the token in the still-open form and paste again:\n  %s\n\n", url)
+		}
+
+		raw, err := p.ReadToken()
+		if err != nil {
+			return nil, err
+		}
+		tok := strings.TrimSpace(raw)
+		if tok == "" {
+			lastErr = errors.New("no token was entered")
+			m.log(lastErr.Error())
+			continue
+		}
+
+		id, err := m.validate(Host, tok)
+		if err != nil {
+			if !IsAuthError(err) {
+				// Transient/network failure: retrying the paste won't help.
+				return nil, fmt.Errorf("could not verify the pasted token: %w", err)
+			}
+			lastErr = fmt.Errorf("the pasted token was rejected by GitHub: %w", authErrorHint(err))
+			m.log(lastErr.Error())
+			continue
+		}
+
+		if err := checkGrant(id, tok, m.now()); err != nil {
+			lastErr = err
+			m.logf("Token doesn't match what's required: %v\n", err)
+			continue
+		}
+
+		now := m.now()
+		rec := &Record{
+			Token:     tok,
+			Login:     id.Login,
+			Host:      Host,
+			CreatedAt: now,
+			ExpiresAt: id.ExpiresAt,
+		}
+		if rec.ExpiresAt.IsZero() {
+			// Header was present but unparseable (checkGrant let it through); fall
+			// back to the requested lifetime rather than storing a zero expiry.
+			rec.ExpiresAt = now.Add(ExpiresInDays * 24 * time.Hour)
+		}
+		return rec, nil
+	}
+	return nil, lastErr
 }
 
 func (m *Manager) load() (*Record, error) {

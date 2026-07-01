@@ -21,7 +21,11 @@ const expirationHeader = "Github-Authentication-Token-Expiration"
 // Identity is the result of validating a token against the API.
 type Identity struct {
 	Login     string
-	ExpiresAt time.Time // zero when the token has no expiry or the header is absent
+	ExpiresAt time.Time // zero when the token has no expiry or the header is unparseable
+	// HasExpiry reports whether GitHub returned the expiration header at all,
+	// which distinguishes a genuine no-expiry token from a present-but-unparseable
+	// timestamp (where ExpiresAt is also zero). The grant policy relies on this.
+	HasExpiry bool
 }
 
 // Validate confirms a token authenticates to GitHub and returns the associated
@@ -51,11 +55,18 @@ func Validate(host, token string) (*Identity, error) {
 		_ = json.Unmarshal(body, &user)
 	}
 
-	id := &Identity{Login: user.Login}
-	if raw := resp.Header.Get(expirationHeader); raw != "" {
+	return identityFrom(user.Login, resp.Header), nil
+}
+
+// identityFrom builds an Identity from the /user login and the response headers,
+// recording whether GitHub reported a token expiry (see Identity.HasExpiry).
+func identityFrom(login string, header http.Header) *Identity {
+	id := &Identity{Login: login}
+	if raw := header.Get(expirationHeader); raw != "" {
+		id.HasExpiry = true
 		id.ExpiresAt = parseExpiration(raw)
 	}
-	return id, nil
+	return id
 }
 
 // IsAuthError reports whether err is a GitHub rejection of the credential
