@@ -59,8 +59,8 @@ func Run(token string, extraArgs []string) error {
 func envMap(environ []string) map[string]string {
 	m := make(map[string]string, len(environ))
 	for _, kv := range environ {
-		if i := strings.IndexByte(kv, '='); i >= 0 {
-			m[kv[:i]] = kv[i+1:]
+		if before, after, ok := strings.Cut(kv, "="); ok {
+			m[before] = after
 		}
 	}
 	return m
