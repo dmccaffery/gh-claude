@@ -33,8 +33,10 @@ builds:
       binary: gh-claude
       flags:
           - -trimpath
+      # -X main.version stamps the release tag into the binary so `gh claude
+      # version` and the launch-time integrity check know which build this is.
       ldflags:
-          - -s -w
+          - -s -w -X main.version={{ .Version }}
       goos:
           - linux
           - darwin
