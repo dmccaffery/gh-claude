@@ -1,0 +1,38 @@
+## claude verify
+
+Verify this binary's build provenance via GitHub attestations
+
+### Synopsis
+
+Verify that the running gh-claude binary was built by
+bitwise-media-group's release workflow and recorded in GitHub's attestation
+store, using "gh attestation verify". Needs network access to GitHub.
+
+By default it asserts only that the binary was built by this org's CI from this
+repository. Use --signer-workflow to pin the exact building workflow, or
+--cert-identity for a signer-identity regexp.
+
+```
+claude verify [flags]
+```
+
+### Options
+
+```
+      --cert-identity string     require a signer identity matching this regexp (alternative to --signer-workflow)
+  -h, --help                     help for verify
+      --json                     print gh's JSON verification result
+      --signer-workflow string   require this exact building workflow (owner/repo/.github/workflows/file.yaml)
+```
+
+### Options inherited from parent commands
+
+```
+      --op             store the token in 1Password via the op CLI (instead of the OS keychain)
+      --vault string   1Password vault for --op (default "Private"; overrides GH_CLAUDE_OP_VAULT)
+```
+
+### SEE ALSO
+
+* [claude](claude.md)	 - Launch Claude Code with a temporary, no-push GitHub token
+

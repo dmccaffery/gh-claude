@@ -1,9 +1,13 @@
 # Integrity: provenance verification & the security-policy kill switch
 
 `gh-claude` ships two independent integrity mechanisms, implemented in
-[`internal/integrity`](../internal/integrity) and wired in
-[`cmd/integrity.go`](../cmd/integrity.go). They use **different trust roots and
-cadences on purpose**.
+[`internal/integrity`](https://github.com/bitwise-media-group/gh-claude/tree/main/internal/integrity)
+and wired in
+[`cmd/integrity.go`](https://github.com/bitwise-media-group/gh-claude/blob/main/cmd/integrity.go).
+They use **different trust roots and cadences on purpose**. This page is the
+maintainer's view — key ceremonies, authoring, publishing, and the disclosure
+runbook; the user-facing behaviour is described in the
+[security model](security.md#binary-integrity).
 
 |                     | Build provenance                      | Security policy                                               |
 | ------------------- | ------------------------------------- | ------------------------------------------------------------- |
@@ -23,8 +27,8 @@ and the policy stays trustworthy even if the release path is compromised.
 ## 1. Build provenance — `gh claude verify`
 
 Verifies the running binary against GitHub's attestation store using
-`gh attestation verify` (the `gh` CLI is always present — this is a gh
-extension — and carries Sigstore's trusted root):
+`gh attestation verify` (the `gh` CLI is always present — this is a gh extension
+— and carries Sigstore's trusted root):
 
 ```console
 $ gh claude verify                 # asserts: built by our CI from this repo
@@ -96,11 +100,11 @@ silent no-op, so unconfigured builds behave exactly as before.
 Policies are signed with an **OpenSSH signature** (`ssh-keygen -Y sign`), so the
 signing key can be a **FIDO2 resident `sk-ssh-ed25519` key on a YubiKey** — the
 same hardware-backed flow used for commit signing. That is what lets a YubiKey
-FIPS device (firmware 5.4.x — no PIV Ed25519, and no ECDSA keys on hand) sign the
-policy: its FIDO2 Ed25519 signature carries an authenticator flags+counter
+FIPS device (firmware 5.4.x — no PIV Ed25519, and no ECDSA keys on hand) sign
+the policy: its FIDO2 Ed25519 signature carries an authenticator flags+counter
 envelope that the SSH signature format represents and the client verifies (via
-`golang.org/x/crypto/ssh`). A plain software `ssh-ed25519` key works too. Provision
-**two** keys — a primary and a break-glass backup — held apart.
+`golang.org/x/crypto/ssh`). A plain software `ssh-ed25519` key works too.
+Provision **two** keys — a primary and a break-glass backup — held apart.
 
 #### 1. Create a key on each YubiKey
 
@@ -119,28 +123,29 @@ $ cat id_ed25519_sk_policy.pub      # -> the authorized_keys line to embed
 
 Paste the primary `.pub` line into `policyPublicKeySSH` and the backup's into
 `policyBackupPublicKeySSH` in
-[`internal/integrity/signature.go`](../internal/integrity/signature.go), and
-confirm `policyURL` in
-[`internal/integrity/check.go`](../internal/integrity/check.go). Public keys only
-— nothing secret ships in the binary. The signing namespace `gh-claude-policy` is
-fixed in `signature.go` (`PolicyNamespace`); the authoring tool signs under it
-automatically.
+[`internal/integrity/signature.go`](https://github.com/bitwise-media-group/gh-claude/blob/main/internal/integrity/signature.go),
+and confirm `policyURL` in
+[`internal/integrity/check.go`](https://github.com/bitwise-media-group/gh-claude/blob/main/internal/integrity/check.go).
+Public keys only — nothing secret ships in the binary. The signing namespace
+`gh-claude-policy` is fixed in `signature.go` (`PolicyNamespace`); the authoring
+tool signs under it automatically.
 
 #### 3. Author and sign a policy
 
-The [`policy` tool](../internal/tools/policy/main.go) creates or updates
-`docs/policy.json` and signs it in one step. It enforces the channel's rules at
-authoring time (every revision's sequence strictly exceeds its predecessor's —
-bumped automatically unless `--sequence` says otherwise — `min_safe_version`
-never drops, revocations only accumulate) and — after `ssh-keygen` signs with
-the inserted YubiKey — verifies the signature against the **embedded** policy
-keys before overwriting anything, so a wrongly-keyed signature can't be
-published.
+The
+[`policy` tool](https://github.com/bitwise-media-group/gh-claude/blob/main/internal/tools/policy/main.go)
+creates or updates `docs/policy.json` and signs it in one step. It enforces the
+channel's rules at authoring time (every revision's sequence strictly exceeds
+its predecessor's — bumped automatically unless `--sequence` says otherwise —
+`min_safe_version` never drops, revocations only accumulate) and — after
+`ssh-keygen` signs with the inserted YubiKey — verifies the signature against
+the **embedded** policy keys before overwriting anything, so a wrongly-keyed
+signature can't be published.
 
 ```console
-$ make policy                                              # renew: bump sequence, fresh dates
-$ make policy ARGS='--revoke 0.1.2 --min-version 0.1.3'    # revoke + raise the floor
-$ go run ./internal/tools/policy --expires-days 14 --sequence 1 --min-version 0.1.0   # first policy
+make policy                                              # renew: bump sequence, fresh dates
+make policy ARGS='--revoke 0.1.2 --min-version 0.1.3'    # revoke + raise the floor
+go run ./internal/tools/policy --expires-days 14 --sequence 1 --min-version 0.1.0   # first policy
 ```
 
 `--revoke` takes a comma-separated list and may be repeated. To sign and check
@@ -178,10 +183,10 @@ When a vulnerability is found in a released version:
    vulnerable version, pointing users at `gh extension upgrade claude`.
 
 **Rotating a policy key** = ship a build that moves the surviving key into
-`policyPublicKeySSH` and a freshly generated key into `policyBackupPublicKeySSH`.
-Because a policy is trusted if it matches _either_ embedded key, a lost or
-compromised primary never locks you out: keep signing with the backup while the
-replacement build rolls out.
+`policyPublicKeySSH` and a freshly generated key into
+`policyBackupPublicKeySSH`. Because a policy is trusted if it matches _either_
+embedded key, a lost or compromised primary never locks you out: keep signing
+with the backup while the replacement build rolls out.
 
 ## Environment toggles
 
