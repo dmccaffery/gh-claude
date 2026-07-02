@@ -63,7 +63,7 @@ Pass arguments through to claude after "--", e.g.:
 	root.Flags().BoolVar(&refresh, "refresh", false, "force creating a new token even if a valid one is stored")
 	addStoreFlags(root)
 
-	root.AddCommand(loginCmd(), logoutCmd(), statusCmd(), verifyCmd(), versionCmd())
+	root.AddCommand(loginCmd(), logoutCmd(), statusCmd(), verifyCmd(), versionCmd(), docsCmd())
 	return root
 }
 
