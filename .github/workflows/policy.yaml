@@ -1,0 +1,130 @@
+# Copyright 2026 Bitwise Media Group Ltd.
+# SPDX-License-Identifier: MIT
+
+# Publish the signed security policy (docs/policy.json + docs/policy.json.sig)
+# to GitHub Pages the moment a change lands on main, without waiting for a
+# release (see docs/security-policy.md -- the policy is the revocable kill
+# switch, so rollout must not be gated on cutting one).
+#
+# Pages deployments made through actions/deploy-pages are atomic -- every
+# deploy replaces the whole site -- so "publish just two files" is not possible
+# directly. Instead this rebuilds the site from the LATEST PUBLISHED RELEASE
+# tag (the same source the release pipeline's docs job deploys) and overlays
+# the policy pair from the commit that triggered the run. The rendered docs
+# therefore never drift ahead of the released docs; only the policy tracks
+# main. While the latest release predates the docs toolchain (no zensical.toml
+# at the tag) there is no released site to rebuild, so the policy pair is
+# published on its own and the first docs release deploys the full site over it.
+#
+# This is a sibling of release.yaml rather than a job inside it because
+# `paths:` filtering only exists on the workflow-level trigger: release.yaml
+# must run release-please on every push to main, while this must run only when
+# the policy pair changes.
+#
+# Requires Settings -> Pages -> Source -> GitHub Actions, like the release
+# pipeline's docs job.
+name: Policy
+
+on:
+    push:
+        branches: [main]
+        paths:
+            - docs/policy.json
+            - docs/policy.json.sig
+    # allow re-publishing manually from the Actions tab
+    workflow_dispatch:
+
+permissions: {}
+
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+        permissions:
+            # check out the source and read the latest release
+            contents: read
+            # publish the GitHub Pages deployment
+            pages: write
+            # OIDC token the deploy-pages action exchanges for the Pages deploy
+            id-token: write
+        # Serialize Pages deployments and never cancel an in-flight publish.
+        # Concurrency groups are repository-scoped, so this shares the queue with
+        # the reusable release workflow's docs job -- a policy publish can never
+        # race a release-time docs deploy.
+        concurrency:
+            group: pages
+            cancel-in-progress: false
+        environment:
+            name: github-pages
+            url: ${{ steps.deploy.outputs.page_url }}
+        steps:
+            # the triggering commit -- only the policy pair is taken from here
+            - name: Checkout repository
+              uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+              with:
+                  persist-credentials: false # read-only checkout; don't leave the token in .git/config
+
+            # The docs are rebuilt from the latest published release so the site
+            # matches what the release pipeline last deployed. Fails (404) before
+            # the first release: with no release there is nothing to publish
+            # against, so fail closed.
+            - name: Resolve latest release
+              id: latest
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  set -eu
+                  tag="$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq .tag_name)"
+                  echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+            - name: Checkout latest release
+              uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+              with:
+                  ref: ${{ steps.latest.outputs.tag }}
+                  path: release
+                  persist-credentials: false # read-only checkout; don't leave the token in .git/config
+                  # pull Git LFS objects so Zensical embeds real assets, not pointer
+                  # files; a no-op while nothing is tracked in LFS.
+                  lfs: true
+
+            - name: Setup uv
+              uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+              with:
+                  enable-cache: true
+
+            # Render release/docs into release/site with the release tag's own
+            # locked toolchain (uv.lock + pyproject.toml), mirroring the release
+            # pipeline's docs job. The zensical.toml probe only takes the
+            # policy-alone path in the pre-docs window described in the header; a
+            # tag that has docs but fails to build still fails the job, so a
+            # broken build can never wipe the live site down to the policy pair.
+            - name: Build site at latest release
+              working-directory: release
+              run: |
+                  set -eu
+                  if [ -f zensical.toml ]; then
+                      uv run zensical build
+                  else
+                      echo "no zensical.toml at the latest release; publishing the policy pair alone" >&2
+                      mkdir -p site
+                  fi
+
+            # Overlay the policy pair from the triggering commit onto the built
+            # site. cp fails if either file is missing, so a policy is never
+            # published without its detached signature (or the signature without
+            # the policy). Shipped clients verify the sshsig against their
+            # embedded keys regardless; the authoring tool
+            # (internal/tools/policy) verified it before the pair was committed.
+            - name: Overlay policy from main
+              run: cp docs/policy.json docs/policy.json.sig release/site/
+
+            - name: Configure Pages
+              uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+            - name: Upload Pages artifact
+              uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+              with:
+                  path: release/site
+
+            - name: Deploy to GitHub Pages
+              id: deploy
+              uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
