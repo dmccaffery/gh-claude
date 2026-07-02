@@ -112,7 +112,7 @@ const maxProvisionAttempts = 3
 
 // provision runs the interactive create-and-store flow.
 func (m *Manager) provision(p Provisioner) (*Record, error) {
-	url := CreationURL(p.Hostname)
+	url := CreationURL(p.Hostname, m.now())
 
 	m.log("A new GitHub token is needed.")
 	m.log("In the page that opens:")
