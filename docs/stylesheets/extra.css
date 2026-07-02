@@ -1,0 +1,1035 @@
+/* ============================================================
+   gh-claude docs — GitHub Primer skin for Zensical / Material
+   Sub-brand tokens: design-system/tokens/themes.css (.theme-ghclaude)
+   The duotone tells the product story: GitHub's merged-PR purple is
+   the gh side, Claude's terracotta orange is the claude side.
+   Primer canvases, hairline borders, 6px corners, sans headings,
+   connected (shared-border) grids.
+   Dark  -> Material "slate" scheme   (.theme-ghclaude)
+   Light -> Material "default" scheme (.theme-ghclaude-light)
+   Unlike dotty's constant-dark landing, the landing here reads the
+   scheme tokens, so the palette toggle re-themes the whole page.
+   ============================================================ */
+
+/* ---------- DARK (slate) ---------- */
+[data-md-color-scheme="slate"] {
+    --md-default-bg-color: #0d1117;
+    --md-default-bg-color--light: #161b22;
+    --md-default-fg-color: #e6edf3;
+    --md-default-fg-color--light: #9198a1;
+    --md-default-fg-color--lighter: #6e7681;
+    --md-default-fg-color--lightest: rgba(230, 237, 243, 0.08);
+
+    --md-primary-fg-color: #0d1117;
+    --md-primary-fg-color--light: #161b22;
+    --md-primary-fg-color--dark: #010409;
+    --md-primary-bg-color: #e6edf3;
+    --md-primary-bg-color--light: #9198a1;
+
+    --md-accent-fg-color: #a371f7;
+    --md-accent-fg-color--transparent: rgba(163, 113, 247, 0.1);
+    --md-typeset-a-color: #a371f7;
+
+    --md-code-bg-color: #010409;
+    --md-code-fg-color: #e6edf3;
+    --md-code-hl-comment-color: #8b949e;
+    --md-code-hl-keyword-color: #ff7b72;
+    --md-code-hl-string-color: #a5d6ff;
+    --md-code-hl-number-color: #79c0ff;
+    --md-code-hl-function-color: #d2a8ff;
+    --md-code-hl-constant-color: #79c0ff;
+    --md-code-hl-name-color: #e6edf3;
+    --md-code-hl-operator-color: #ff7b72;
+    --md-code-hl-punctuation-color: #8b949e;
+
+    --md-footer-bg-color: #010409;
+    --md-footer-bg-color--dark: #000000;
+
+    /* gh-claude brand ramp (design-system .theme-ghclaude) */
+    --ghc-purple: #a371f7;
+    --ghc-purple-2: #bc8cff;
+    --ghc-orange: #d97757;
+    --ghc-orange-2: #e08f72;
+    --ghc-ink-purple: #a371f7;
+    --ghc-ink-orange: #d97757;
+    --ghc-green: #3fb950;
+    --ghc-red: #f85149;
+    --ghc-on-accent: #0d1117;
+    --ghc-bg: #0d1117;
+    --ghc-surface: #161b22;
+    --ghc-code: #010409;
+    --ghc-code-2: #0c1017;
+    --ghc-fg: #e6edf3;
+    --ghc-muted: #9198a1;
+    --ghc-faint: #6e7681;
+    --ghc-line: #30363d;
+    --ghc-line-2: #3d444d;
+    --ghc-shadow: 0 20px 50px rgba(1, 4, 9, 0.55);
+    --ghc-shadow-strong: 0 28px 70px rgba(1, 4, 9, 0.7);
+}
+
+/* ---------- LIGHT (default) ---------- */
+[data-md-color-scheme="default"] {
+    --md-default-bg-color: #ffffff;
+    --md-default-fg-color: #1f2328;
+    --md-default-fg-color--light: #59636e;
+    --md-default-fg-color--lighter: #656d76;
+    --md-default-fg-color--lightest: rgba(31, 35, 40, 0.1);
+
+    --md-primary-fg-color: #ffffff;
+    --md-primary-fg-color--light: #f6f8fa;
+    --md-primary-fg-color--dark: #eff2f5;
+    --md-primary-bg-color: #1f2328;
+    --md-primary-bg-color--light: #59636e;
+
+    --md-accent-fg-color: #8250df;
+    --md-accent-fg-color--transparent: rgba(130, 80, 223, 0.1);
+    --md-typeset-a-color: #7a45d6;
+
+    --md-code-bg-color: #f6f8fa;
+    --md-code-fg-color: #1f2328;
+    --md-code-hl-comment-color: #6e7781;
+    --md-code-hl-keyword-color: #cf222e;
+    --md-code-hl-string-color: #0a3069;
+    --md-code-hl-number-color: #0550ae;
+    --md-code-hl-function-color: #8250df;
+    --md-code-hl-constant-color: #0550ae;
+    --md-code-hl-name-color: #1f2328;
+    --md-code-hl-operator-color: #cf222e;
+    --md-code-hl-punctuation-color: #6e7781;
+
+    --md-footer-bg-color: #f6f8fa;
+    --md-footer-bg-color--dark: #eff2f5;
+    --md-footer-fg-color: #1f2328;
+    --md-footer-fg-color--light: #59636e;
+    --md-footer-fg-color--lighter: #656d76;
+
+    /* gh-claude brand ramp (design-system .theme-ghclaude-light):
+       accents drop to the deep fills so white sits on them (Primer's
+       done.emphasis), and ink colours go a step deeper for AA text. */
+    --ghc-purple: #8250df;
+    --ghc-purple-2: #6639ba;
+    --ghc-orange: #b3552e;
+    --ghc-orange-2: #9a4a26;
+    --ghc-ink-purple: #7a45d6;
+    --ghc-ink-orange: #a54d28;
+    --ghc-green: #1a7f37;
+    --ghc-red: #cf222e;
+    --ghc-on-accent: #ffffff;
+    --ghc-bg: #ffffff;
+    --ghc-surface: #f6f8fa;
+    --ghc-code: #eff2f5;
+    --ghc-code-2: #f5f7f9;
+    --ghc-fg: #1f2328;
+    --ghc-muted: #59636e;
+    --ghc-faint: #656d76;
+    --ghc-line: #d0d7de;
+    --ghc-line-2: #afb8c1;
+    --ghc-shadow: 0 20px 50px rgba(31, 35, 40, 0.1);
+    --ghc-shadow-strong: 0 28px 70px rgba(31, 35, 40, 0.16);
+}
+
+/* ===== Header: flat, with the purple→orange duotone underline ===== */
+.md-header {
+    box-shadow: none;
+    border-bottom: 1px solid var(--ghc-line);
+    position: relative;
+}
+.md-header[data-md-state="shadow"],
+.md-header--shadow {
+    box-shadow: none;
+}
+.md-header::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 2px;
+    background: linear-gradient(
+        90deg,
+        var(--ghc-purple),
+        var(--ghc-purple) 45%,
+        var(--ghc-orange)
+    );
+}
+.md-header__title {
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+
+/* Header / drawer wordmark: "gh-claude" split across the duotone
+   (partials/*.html) — gh in purple, claude in orange. */
+.ghc-headmark {
+    font-family: var(
+        --md-code-font-family,
+        "JetBrains Mono",
+        ui-monospace,
+        monospace
+    );
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: -0.01em;
+}
+.ghc-headmark .gh {
+    color: var(--ghc-ink-purple);
+}
+.ghc-headmark .dash {
+    color: var(--ghc-muted);
+}
+.ghc-headmark .cl {
+    color: var(--ghc-ink-orange);
+}
+.ghc-headmark:hover {
+    opacity: 0.85;
+}
+[dir="ltr"] .md-search__input {
+    border-radius: 6px;
+}
+
+/* Active nav + links pick up the purple accent */
+.md-nav__link--active,
+.md-nav__item .md-nav__link--active {
+    color: var(--md-accent-fg-color);
+}
+.md-typeset .md-typeset__table {
+    border-color: var(--ghc-line);
+}
+.md-typeset .admonition,
+.md-typeset details {
+    border-left-width: 2px;
+}
+
+/* ============================================================
+   LANDING PAGE  (.ghc) — injected by overrides/home.html.
+   Every colour reads a --ghc-* token from the active scheme, so the
+   palette toggle re-themes the landing (GitHub dark <-> light).
+   ============================================================ */
+.ghc {
+    --ghc-mono: var(
+        --md-code-font-family,
+        "JetBrains Mono",
+        ui-monospace,
+        monospace
+    );
+    --ghc-sans: var(
+        --md-text-font-family,
+        "Hanken Grotesk",
+        system-ui,
+        sans-serif
+    );
+    --ghc-r: 6px;
+
+    background: var(--ghc-bg);
+    color: var(--ghc-fg);
+    font-family: var(--ghc-sans);
+    line-height: 1.55;
+}
+.ghc * {
+    box-sizing: border-box;
+}
+.ghc a {
+    text-decoration: none;
+}
+
+/* ---- HERO ---- */
+.ghc-hero {
+    position: relative;
+    overflow: hidden;
+}
+.ghc-hero__grid {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.5;
+    background-image:
+        linear-gradient(var(--ghc-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--ghc-line) 1px, transparent 1px);
+    background-size: 46px 46px;
+    -webkit-mask-image: radial-gradient(
+        120% 80% at 50% 0%,
+        #000 30%,
+        transparent 72%
+    );
+    mask-image: radial-gradient(120% 80% at 50% 0%, #000 30%, transparent 72%);
+}
+.ghc-hero__glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(
+            820px 380px at 22% -8%,
+            color-mix(in oklab, var(--ghc-purple) 13%, transparent),
+            transparent
+        ),
+        radial-gradient(
+            620px 360px at 84% 4%,
+            color-mix(in oklab, var(--ghc-orange) 10%, transparent),
+            transparent
+        );
+}
+.ghc-hero__inner {
+    position: relative;
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 70px 24px 48px;
+    text-align: center;
+}
+.ghc-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 22px;
+    font-family: var(--ghc-mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ghc-ink-purple);
+    border: 1px solid color-mix(in oklab, var(--ghc-purple) 40%, transparent);
+    background: color-mix(in oklab, var(--ghc-purple) 9%, transparent);
+    padding: 5px 12px;
+    border-radius: 999px;
+}
+.ghc-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ghc-purple);
+    animation: ghc-pulse 1.6s ease-in-out infinite;
+}
+.ghc-wordmark {
+    margin: 0;
+    font-family: var(--ghc-mono);
+    font-weight: 700;
+    font-size: clamp(46px, 9vw, 96px);
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+    color: var(--ghc-fg);
+}
+.ghc-wordmark .p {
+    color: var(--ghc-faint);
+}
+.ghc-wordmark .gh {
+    color: var(--ghc-ink-purple);
+}
+.ghc-wordmark .cl {
+    color: var(--ghc-ink-orange);
+}
+.ghc-tagline {
+    margin: 20px auto 0;
+    max-width: 680px;
+    font-size: clamp(19px, 2.6vw, 24px);
+    font-weight: 500;
+    line-height: 1.35;
+    color: var(--ghc-fg);
+}
+.ghc-tagline em {
+    font-style: normal;
+    color: var(--ghc-ink-orange);
+}
+.ghc-lede {
+    margin: 16px auto 0;
+    max-width: 680px;
+    font-size: 15.5px;
+    line-height: 1.65;
+    color: var(--ghc-muted);
+    text-wrap: pretty;
+}
+.ghc-lede code {
+    font-family: var(--ghc-mono);
+    font-size: 0.9em;
+    color: var(--ghc-fg);
+    background: none;
+}
+
+/* install terminal block */
+.ghc-term {
+    max-width: 560px;
+    margin: 28px auto 0;
+    text-align: left;
+    overflow: hidden;
+    background: var(--ghc-surface);
+    border: 1px solid var(--ghc-line);
+    border-radius: var(--ghc-r);
+    box-shadow: var(--ghc-shadow);
+}
+.ghc-term__bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--ghc-line);
+}
+.ghc-dots {
+    display: flex;
+    gap: 6px;
+}
+.ghc-dots i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+.ghc-dots i:nth-child(1) {
+    background: var(--ghc-purple);
+}
+.ghc-dots i:nth-child(2) {
+    background: var(--ghc-orange);
+}
+.ghc-dots i:nth-child(3) {
+    background: var(--ghc-green);
+}
+.ghc-term__bar span {
+    margin-left: 6px;
+    font-family: var(--ghc-mono);
+    font-size: 11px;
+    color: var(--ghc-muted);
+}
+
+/* a copyable command row ($ cmd  + copy button) */
+.ghc-copy {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    background: var(--ghc-code-2);
+    border-top: 1px solid var(--ghc-line);
+}
+.ghc-copy .ghc-p {
+    color: var(--ghc-ink-purple);
+    font-family: var(--ghc-mono);
+    font-size: 13.5px;
+}
+.ghc-copy code {
+    flex: 1;
+    font-family: var(--ghc-mono);
+    font-size: 13.5px;
+    color: var(--ghc-fg);
+    background: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 28px;
+}
+
+/* buttons */
+.ghc-cta {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+}
+.ghc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-family: var(--ghc-mono);
+    font-size: 14px;
+    padding: 12px 20px;
+    border-radius: var(--ghc-r);
+    border: 1px solid transparent;
+}
+.ghc-btn--primary {
+    background: var(--ghc-purple);
+    color: var(--ghc-on-accent);
+    font-weight: 700;
+}
+.ghc-btn--primary:hover {
+    background: var(--ghc-purple-2);
+}
+.ghc-btn--ghost {
+    background: var(--ghc-surface);
+    color: var(--ghc-fg);
+    border-color: var(--ghc-line);
+    font-weight: 600;
+}
+.ghc-btn--ghost:hover {
+    border-color: var(--ghc-line-2);
+}
+.ghc-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* ---- TERMINAL SHOWCASE ---- */
+.ghc-shot {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 8px 24px 4px;
+}
+.ghc-shot__frame {
+    background: var(--ghc-code);
+    border: 1px solid var(--ghc-line);
+    border-radius: var(--ghc-r);
+    overflow: hidden;
+    box-shadow: var(--ghc-shadow-strong);
+}
+.ghc-shot__bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--ghc-line);
+    font-family: var(--ghc-mono);
+}
+.ghc-shot__bar .ghc-dots i {
+    width: 11px;
+    height: 11px;
+}
+.ghc-shot__bar .ghc-title {
+    margin-left: 6px;
+    font-size: 11.5px;
+    color: var(--ghc-muted);
+}
+.ghc-shot__bar .ghc-live {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--ghc-green);
+}
+.ghc-panes {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+}
+.ghc-pane {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+.ghc-pane + .ghc-pane {
+    border-left: 1px solid var(--ghc-line);
+}
+.ghc-pane__head {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 11px;
+    border-bottom: 1px solid var(--ghc-line);
+    background: var(--ghc-code-2);
+}
+.ghc-pane__head b {
+    font-family: var(--ghc-mono);
+    font-size: 10px;
+    color: var(--ghc-on-accent);
+    background: var(--ghc-purple);
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-weight: 700;
+}
+.ghc-pane__head span {
+    font-family: var(--ghc-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ghc-muted);
+}
+.ghc-pane__body {
+    padding: 10px 12px;
+    font-family: var(--ghc-mono);
+    font-size: 11.5px;
+    line-height: 1.9;
+    overflow: hidden;
+}
+.ghc-blink {
+    display: inline-block;
+    width: 7px;
+    height: 13px;
+    background: var(--ghc-orange);
+    vertical-align: middle;
+    margin-left: 3px;
+    animation: ghc-blink 1s steps(1) infinite;
+}
+.ghc-ok {
+    color: var(--ghc-green);
+}
+.ghc-ready {
+    color: var(--ghc-ink-orange);
+}
+.ghc-dim {
+    color: var(--ghc-muted);
+}
+.ghc-arow {
+    display: flex;
+    gap: 9px;
+    align-items: baseline;
+}
+.ghc-arow .gl {
+    width: 8px;
+}
+.ghc-arow .k {
+    color: var(--ghc-fg);
+    width: 104px;
+}
+.ghc-arow .v {
+    color: var(--ghc-muted);
+    flex: 1;
+}
+.ghc-pane__sep {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--ghc-line);
+    color: var(--ghc-muted);
+}
+.ghc-shot__cap {
+    text-align: center;
+    font-size: 13px;
+    color: var(--ghc-muted);
+    margin: 14px 2px 0;
+}
+.ghc-shot__cap b {
+    color: var(--ghc-fg);
+    font-weight: 600;
+}
+
+/* ---- MARQUEE ---- */
+.ghc-marquee {
+    overflow: hidden;
+    border-top: 1px solid var(--ghc-line);
+    border-bottom: 1px solid var(--ghc-line);
+    padding: 13px 0;
+    margin-top: 40px;
+    -webkit-mask-image: linear-gradient(
+        90deg,
+        transparent,
+        #000 8%,
+        #000 92%,
+        transparent
+    );
+    mask-image: linear-gradient(
+        90deg,
+        transparent,
+        #000 8%,
+        #000 92%,
+        transparent
+    );
+}
+.ghc-marquee__track {
+    display: flex;
+    width: max-content;
+    animation: ghc-marquee 36s linear infinite;
+}
+.ghc-marquee__track span {
+    font-family: var(--ghc-mono);
+    font-size: 12.5px;
+    color: var(--ghc-muted);
+    padding: 0 22px;
+    border-right: 1px solid var(--ghc-line);
+    white-space: nowrap;
+}
+
+/* ---- STATS ---- */
+.ghc-stats-wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+.ghc-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border: 1px solid var(--ghc-line);
+    border-top: none;
+    overflow: hidden;
+}
+.ghc-stat {
+    padding: 22px 18px;
+    background: var(--ghc-surface);
+}
+.ghc-stat + .ghc-stat {
+    border-left: 1px solid var(--ghc-line);
+}
+.ghc-stat b {
+    display: block;
+    font-family: var(--ghc-mono);
+    font-weight: 700;
+    font-size: clamp(20px, 2.8vw, 28px);
+    color: var(--ghc-fg);
+}
+.ghc-stat small {
+    display: block;
+    font-family: var(--ghc-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ghc-muted);
+    margin-top: 4px;
+}
+
+/* ---- SECTIONS ---- */
+.ghc-section {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 64px 24px 0;
+}
+.ghc-section--last {
+    padding-bottom: 72px;
+}
+.ghc-eyebrow {
+    margin: 0;
+    font-family: var(--ghc-mono);
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    color: var(--ghc-muted);
+    font-weight: 500;
+}
+.ghc-lead {
+    margin: 10px 0 26px;
+    font-family: var(--ghc-sans);
+    font-size: clamp(22px, 3vw, 30px);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ghc-fg);
+    max-width: 760px;
+}
+.ghc-lead code,
+.ghc-lead--sm code {
+    font-family: var(--ghc-mono);
+    color: var(--ghc-ink-purple);
+    font-size: 0.85em;
+    background: none;
+}
+.ghc-lead--sm {
+    margin: 10px 0 24px;
+    font-family: var(--ghc-sans);
+    font-size: clamp(20px, 2.6vw, 26px);
+    font-weight: 600;
+    color: var(--ghc-fg);
+}
+
+/* connected feature grid */
+.ghc-conn {
+    border: 1px solid var(--ghc-line);
+    border-radius: var(--ghc-r);
+    overflow: hidden;
+}
+.ghc-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+}
+.ghc-grid-3 > * {
+    border-left: 1px solid var(--ghc-line);
+    border-top: 1px solid var(--ghc-line);
+}
+.ghc-grid-3 > :nth-child(3n + 1) {
+    border-left: none;
+}
+.ghc-grid-3 > :nth-child(-n + 3) {
+    border-top: none;
+}
+.ghc-feat {
+    padding: 22px;
+    background: var(--ghc-surface);
+}
+.ghc-glyph {
+    width: 38px;
+    height: 38px;
+    border-radius: var(--ghc-r);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+    color: var(--ghc-on-accent);
+}
+.ghc-glyph svg {
+    width: 19px;
+    height: 19px;
+}
+.ghc-feat h3 {
+    margin: 0 0 7px;
+    font-family: var(--ghc-sans);
+    font-weight: 650;
+    font-size: 15.5px;
+    color: var(--ghc-fg);
+}
+.ghc-feat p {
+    margin: 0;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--ghc-muted);
+    text-wrap: pretty;
+}
+.ghc-feat p code {
+    font-family: var(--ghc-mono);
+    color: var(--ghc-fg);
+    background: none;
+    padding: 0;
+}
+
+/* "Claude gets" / "Claude never sees" panels */
+.ghc-two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+}
+.ghc-panel {
+    padding: 20px;
+    background: var(--ghc-surface);
+    border: 1px solid var(--ghc-line);
+    border-radius: var(--ghc-r);
+}
+.ghc-panel h3 {
+    margin: 0 0 12px;
+    font-family: var(--ghc-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ghc-muted);
+}
+.ghc-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.ghc-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--ghc-mono);
+    font-size: 12.5px;
+    color: var(--ghc-fg);
+    background: var(--ghc-bg);
+    border: 1px solid var(--ghc-line);
+    border-radius: 999px;
+    padding: 5px 10px;
+}
+.ghc-chip::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--chip, var(--ghc-purple));
+}
+
+/* ---- COMMANDS (command list) ---- */
+.ghc-cmdcard {
+    background: var(--ghc-code);
+    border: 1px solid var(--ghc-line);
+    border-radius: var(--ghc-r);
+    overflow: hidden;
+    max-width: 760px;
+}
+.ghc-cmdcard__bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--ghc-line);
+}
+.ghc-cmdcard__bar svg {
+    width: 14px;
+    height: 14px;
+    color: var(--ghc-ink-purple);
+}
+.ghc-cmdcard__bar span {
+    font-family: var(--ghc-mono);
+    font-size: 11.5px;
+    color: var(--ghc-muted);
+}
+.ghc-cmdcard__list {
+    padding: 8px 0;
+}
+.ghc-cmdrow {
+    display: flex;
+    gap: 16px;
+    padding: 6px 16px;
+    flex-wrap: wrap;
+}
+.ghc-cmdrow + .ghc-cmdrow {
+    border-top: 1px solid color-mix(in oklab, var(--ghc-line) 50%, transparent);
+}
+.ghc-cmdrow code {
+    font-family: var(--ghc-mono);
+    font-size: 13px;
+    color: var(--ghc-fg);
+    background: none;
+    min-width: 320px;
+}
+.ghc-cmdrow code .p {
+    color: var(--ghc-ink-purple);
+}
+.ghc-cmdrow .cmt {
+    font-family: var(--ghc-mono);
+    font-size: 12px;
+    color: var(--ghc-muted);
+    flex: 1;
+}
+
+/* ---- STEPS ---- */
+.ghc-steps {
+    margin-top: 22px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+}
+.ghc-step {
+    background: var(--ghc-surface);
+    display: flex;
+    flex-direction: column;
+}
+.ghc-step + .ghc-step {
+    border-left: 1px solid var(--ghc-line);
+}
+.ghc-step__body {
+    padding: 22px 22px 16px;
+    flex: 1;
+}
+.ghc-step__num {
+    font-family: var(--ghc-mono);
+    font-size: 13px;
+    color: var(--ghc-ink-orange);
+    margin-bottom: 12px;
+}
+.ghc-step h3 {
+    margin: 0 0 7px;
+    font-family: var(--ghc-sans);
+    font-weight: 650;
+    font-size: 17px;
+    color: var(--ghc-fg);
+}
+.ghc-step p {
+    margin: 0;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--ghc-muted);
+}
+/* "Alternative methods →" link in the Install step, pointing at install.md. */
+.ghc-step__alt {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 10px;
+    color: var(--ghc-ink-purple);
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.ghc-step__alt svg {
+    width: 14px;
+    height: 14px;
+    transition: transform 0.15s ease;
+}
+.ghc-step__alt:hover svg {
+    transform: translateX(3px);
+}
+.ghc-cmd {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 11px 16px;
+    border-top: 1px solid var(--ghc-line);
+    background: var(--ghc-code-2);
+}
+.ghc-cmd .ghc-p {
+    color: var(--ghc-ink-purple);
+    font-family: var(--ghc-mono);
+    font-size: 12.5px;
+}
+.ghc-cmd code {
+    flex: 1;
+    font-family: var(--ghc-mono);
+    font-size: 12px;
+    color: var(--ghc-fg);
+    background: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 28px;
+}
+
+/* Copy buttons reuse zensical's .md-code__nav / .md-code__button styling; the
+   row just provides the positioning context. The wiring is the inline script in
+   overrides/home.html (scoped to .ghc-copy / .ghc-cmd so it never touches
+   zensical's own code-block copy buttons). */
+.ghc-copy .md-code__nav,
+.ghc-cmd .md-code__nav {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+}
+
+/* ---- keyframes ---- */
+@keyframes ghc-blink {
+    50% {
+        opacity: 0;
+    }
+}
+@keyframes ghc-marquee {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+@keyframes ghc-pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.35;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .ghc-marquee__track,
+    .ghc-dot,
+    .ghc-blink {
+        animation: none !important;
+    }
+}
+
+/* ---- responsive ---- */
+@media (max-width: 860px) {
+    .ghc-grid-3 {
+        grid-template-columns: 1fr;
+    }
+    .ghc-grid-3 > * {
+        border-left: none;
+        border-top: 1px solid var(--ghc-line);
+    }
+    .ghc-grid-3 > :first-child {
+        border-top: none;
+    }
+    .ghc-steps {
+        grid-template-columns: 1fr;
+    }
+    .ghc-step + .ghc-step {
+        border-left: none;
+        border-top: 1px solid var(--ghc-line);
+    }
+}
+@media (max-width: 720px) {
+    .ghc-panes {
+        grid-template-columns: 1fr;
+    }
+    .ghc-pane + .ghc-pane {
+        border-left: none;
+        border-top: 1px solid var(--ghc-line);
+    }
+    .ghc-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .ghc-stat:nth-child(3) {
+        border-left: none;
+    }
+    .ghc-stat:nth-child(n + 3) {
+        border-top: 1px solid var(--ghc-line);
+    }
+    .ghc-two {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================================
+   HOME PAGE chrome — drop the empty article that home.html leaves
+   behind (the landing lives in the `tabs` block above it). Unlike
+   dotty, no colour pinning here: the landing follows the scheme.
+   ============================================================ */
+body:has(.ghc) .md-content {
+    display: none;
+}
+body:has(.ghc) .md-main__inner {
+    margin-top: 0;
+}

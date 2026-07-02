@@ -1,0 +1,643 @@
+<!--
+ Copyright 2026 Bitwise Media Group Ltd
+ SPDX-License-Identifier: MIT
+-->
+{# overrides/home.html Custom landing for gh-claude. The design-system gh-claude
+UI kit (the Evolve/dotty landing structure in a GitHub Primer skin) rendered
+with Material/Zensical primitives: injected full-bleed between the header and
+the page body via the `tabs` block. The duotone tells the product story —
+GitHub's merged-PR purple is the gh side, Claude's terracotta orange is the
+claude side. Every colour reads a --ghc-* token from the active scheme, so the
+palette toggle re-themes the landing. The normal article `content` block is
+emptied; index.md sets `hide: [navigation, toc]`, and extra.css drops the empty
+`.md-content` on the home page. #} {% extends "main.html" %} {% block tabs %} {{
+super() }}
+<div class="ghc">
+    <!-- HERO -->
+    <header class="ghc-hero">
+        <div class="ghc-hero__grid"></div>
+        <div class="ghc-hero__glow"></div>
+        <div class="ghc-hero__inner">
+            <div class="ghc-kicker">
+                <span class="ghc-dot"></span>GitHub CLI extension ·
+                least-privilege
+            </div>
+            <h1 class="ghc-wordmark">
+                <span class="p">$ </span><span class="gh">gh</span>
+                <span class="cl">claude</span>
+            </h1>
+            <p class="ghc-tagline">
+                Claude Code on your private repos —
+                <em>never your real credential.</em>
+            </p>
+            <p class="ghc-lede">
+                A GitHub CLI extension that launches Claude Code with a
+                temporary, least-privilege token: read-only on source code (no
+                push), read/write on issues and pull requests, expiring after 7
+                days, and stored in your OS keychain. Claude only ever sees the
+                scoped token — not your keychain, not your real
+                <code>gh</code> login.
+            </p>
+            <div class="ghc-term">
+                <div class="ghc-term__bar">
+                    <span class="ghc-dots"><i></i><i></i><i></i></span
+                    ><span>zsh — install</span>
+                </div>
+                <div class="ghc-copy">
+                    <span class="ghc-p">$</span>
+                    <code
+                        >gh extension install
+                        bitwise-media-group/gh-claude</code
+                    >
+                    <div class="md-code__nav">
+                        <button
+                            class="md-code__button"
+                            type="button"
+                            data-md-type="copy"
+                            title="Copy to clipboard"
+                            aria-label="Copy to clipboard"
+                        ></button>
+                    </div>
+                </div>
+                <div class="ghc-copy">
+                    <span class="ghc-p">$</span>
+                    <code>gh claude</code>
+                    <div class="md-code__nav">
+                        <button
+                            class="md-code__button"
+                            type="button"
+                            data-md-type="copy"
+                            title="Copy to clipboard"
+                            aria-label="Copy to clipboard"
+                        ></button>
+                    </div>
+                </div>
+            </div>
+            <div class="ghc-cta">
+                <a
+                    class="ghc-btn ghc-btn--primary"
+                    href="{{ 'cli/claude/' | url }}"
+                >
+                    Get started
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <path d="M5 12h14" />
+                        <path d="m12 5 7 7-7 7" />
+                    </svg>
+                </a>
+                <a class="ghc-btn ghc-btn--ghost" href="{{ config.repo_url }}">
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        aria-hidden="true"
+                    >
+                        <path
+                            d="M12 .5C5.7.5.5 5.73.5 12.06c0 5.1 3.29 9.43 7.86 10.96.58.1.79-.25.79-.56v-1.96c-3.2.7-3.87-1.54-3.87-1.54-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.71.08-.71 1.16.08 1.78 1.2 1.78 1.2 1.03 1.78 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.69.41.36.78 1.07.78 2.16v3.2c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12.06C23.5 5.73 18.27.5 12 .5Z"
+                        />
+                    </svg>
+                    Star on GitHub
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- TERMINAL SHOWCASE: the launch on the left, the token's exact scope on the right -->
+    <section class="ghc-shot">
+        <div class="ghc-shot__frame">
+            <div class="ghc-shot__bar">
+                <span class="ghc-dots"><i></i><i></i><i></i></span>
+                <span class="ghc-title">gh claude · scoped launch</span>
+                <span class="ghc-live">● read-only · no push</span>
+            </div>
+            <div class="ghc-panes">
+                <div class="ghc-pane">
+                    <div class="ghc-pane__head">
+                        <b>1</b><span>launch</span>
+                    </div>
+                    <div class="ghc-pane__body">
+                        <div>
+                            <span style="color: var(--ghc-ink-purple)">$</span>
+                            gh claude
+                        </div>
+                        <div class="ghc-ok">
+                            ✓ stored token —
+                            <span style="color: var(--ghc-fg)">@deavon</span> ·
+                            6d 23h remaining
+                        </div>
+                        <div class="ghc-dim">
+                            → GH_TOKEN + GITHUB_TOKEN exported
+                        </div>
+                        <div class="ghc-dim">
+                            → git credential helper wired (GIT_CONFIG_*)
+                        </div>
+                        <div class="ghc-dim">
+                            → launching claude in
+                            <span style="color: var(--ghc-faint)"
+                                >~/work/private-api</span
+                            >
+                            …
+                        </div>
+                        <div class="ghc-ready" style="margin-top: 6px">
+                            ✳ Claude Code is ready<span
+                                class="ghc-blink"
+                            ></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="ghc-pane">
+                    <div class="ghc-pane__head">
+                        <b>2</b><span>what claude gets</span>
+                    </div>
+                    <div class="ghc-pane__body">
+                        <div class="ghc-arow">
+                            <span class="gl" style="color: var(--ghc-green)"
+                                >✓</span
+                            ><span class="k">contents</span
+                            ><span class="v">read-only</span>
+                        </div>
+                        <div class="ghc-arow">
+                            <span class="gl" style="color: var(--ghc-green)"
+                                >✓</span
+                            ><span class="k">issues</span
+                            ><span class="v">read / write</span>
+                        </div>
+                        <div class="ghc-arow">
+                            <span class="gl" style="color: var(--ghc-green)"
+                                >✓</span
+                            ><span class="k">pull requests</span
+                            ><span class="v">read / write</span>
+                        </div>
+                        <div class="ghc-arow">
+                            <span class="gl" style="color: var(--ghc-red)"
+                                >✗</span
+                            ><span class="k">git push</span
+                            ><span class="v">rejected</span>
+                        </div>
+                        <div class="ghc-arow">
+                            <span class="gl" style="color: var(--ghc-fg)"
+                                >◆</span
+                            ><span class="k">expiry</span
+                            ><span class="v">7 days</span>
+                        </div>
+                        <div class="ghc-arow">
+                            <span class="gl" style="color: var(--ghc-fg)"
+                                >◆</span
+                            ><span class="k">storage</span
+                            ><span class="v">macOS Keychain</span>
+                        </div>
+                        <div class="ghc-pane__sep">$ gh claude status</div>
+                        <div style="color: var(--ghc-faint)">
+                            Expires:
+                            <span style="color: var(--ghc-fg)"
+                                >Thu, 09 Jul 2026</span
+                            >
+                            <span class="ghc-ok">(6d 23h remaining)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <p class="ghc-shot__cap">
+            One command mints (or reuses) the scoped token, wires it into gh and
+            git, and hands over to Claude — <b>[1] the launch</b> ·
+            <b>[2] exactly what Claude gets</b>.
+        </p>
+    </section>
+
+    <!-- MARQUEE -->
+    {# The tools gh-claude drives and the standards it speaks. Rendered twice so
+    the translateX(-50%) scroll loops seamlessly; aria-hidden because it is
+    decorative and would otherwise be announced twice. #} {% set ghc_marquee =
+    ["gh CLI", "git", "claude", "fine-grained PATs", "macOS Keychain",
+    "Credential Manager", "1Password CLI", "OpenSSH signatures", "Sigstore",
+    "SLSA provenance", "SPDX SBOMs"] %}
+    <div class="ghc-marquee" aria-hidden="true">
+        <div class="ghc-marquee__track">
+            {% for i in [1, 2] %}{% for m in ghc_marquee %}<span>{{ m }}</span
+            >{% endfor %}{% endfor %}
+        </div>
+    </div>
+
+    <!-- STATS -->
+    <section class="ghc-stats-wrap">
+        <div class="ghc-stats">
+            <div class="ghc-stat">
+                <b style="color: var(--ghc-ink-purple)">read-only</b
+                ><small>on source code</small>
+            </div>
+            <div class="ghc-stat">
+                <b>7 days</b><small>then the token dies</small>
+            </div>
+            <div class="ghc-stat">
+                <b style="color: var(--ghc-ink-orange)">0</b
+                ><small>pushes possible</small>
+            </div>
+            <div class="ghc-stat">
+                <b>~1</b><small>browser click a week</small>
+            </div>
+        </div>
+    </section>
+
+    <!-- WHAT GH-CLAUDE DOES -->
+    <section class="ghc-section">
+        <h2 class="ghc-eyebrow">// WHAT GH-CLAUDE DOES</h2>
+        <p class="ghc-lead">
+            A scoped token for Claude — minted in the browser, stored in the
+            keychain, wired in at launch.
+        </p>
+        <div class="ghc-conn ghc-grid-3">
+            <div class="ghc-feat">
+                <div class="ghc-glyph" style="background: var(--ghc-purple)">
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <path
+                            d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"
+                        />
+                        <circle cx="16.5" cy="7.5" r=".5" fill="currentColor" />
+                    </svg>
+                </div>
+                <h3>Least-privilege token</h3>
+                <p>
+                    A fine-grained PAT scoped to <code>contents: read</code> and
+                    issues + pull requests: read/write, across every repo you
+                    can access. Claude works your backlog; the credential stays
+                    yours.
+                </p>
+            </div>
+            <div class="ghc-feat">
+                <div class="ghc-glyph" style="background: var(--ghc-orange)">
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="m4.9 4.9 14.2 14.2" />
+                    </svg>
+                </div>
+                <h3>No push, by design</h3>
+                <p>
+                    <code>contents: read</code> means <code>git push</code> is
+                    rejected outright. If the token ever leaks, the blast radius
+                    stops at read.
+                </p>
+            </div>
+            <div class="ghc-feat">
+                <div class="ghc-glyph" style="background: var(--ghc-purple-2)">
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M12 6v6l4 2" />
+                    </svg>
+                </div>
+                <h3>Expires in 7 days</h3>
+                <p>
+                    Tokens live a week, and reuse stops five minutes before
+                    expiry. GitHub has no API to mint fine-grained PATs, so the
+                    browser step comes round about once a week — pre-filled, one
+                    click.
+                </p>
+            </div>
+            <div class="ghc-feat">
+                <div class="ghc-glyph" style="background: var(--ghc-orange-2)">
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <rect
+                            width="18"
+                            height="11"
+                            x="3"
+                            y="11"
+                            rx="2"
+                            ry="2"
+                        />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                </div>
+                <h3>Native keychains</h3>
+                <p>
+                    macOS Keychain and Windows Credential Manager via the
+                    standard library — no cgo, no third-party keyring. Linux and
+                    WSL2 fall back to an AES-256-GCM encrypted file at 0600.
+                </p>
+            </div>
+            <div class="ghc-feat">
+                <div class="ghc-glyph" style="background: var(--ghc-purple)">
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+                        <path
+                            d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"
+                        />
+                        <path
+                            d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"
+                        />
+                        <line x1="2" x2="22" y1="2" y2="22" />
+                    </svg>
+                </div>
+                <h3>Claude never sees your credential</h3>
+                <p>
+                    Only the scoped token, via <code>GITHUB_TOKEN</code>. Your
+                    keychain and your real <code>gh</code> login are never read,
+                    never exported, never touched.
+                </p>
+            </div>
+            <div class="ghc-feat">
+                <div class="ghc-glyph" style="background: var(--ghc-orange)">
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <polyline points="4 17 10 11 4 5" />
+                        <line x1="12" x2="20" y1="19" y2="19" />
+                    </svg>
+                </div>
+                <h3>Wired into gh and git</h3>
+                <p>
+                    <code>GH_TOKEN</code> plus a per-process git credential
+                    helper (<code>GIT_CONFIG_*</code>): clones and fetches work
+                    on private repos, and nothing global is modified.
+                </p>
+            </div>
+        </div>
+        <div class="ghc-two">
+            <div class="ghc-panel">
+                <h3>Claude gets</h3>
+                <div class="ghc-chips">
+                    <span class="ghc-chip" style="--chip: var(--ghc-purple)"
+                        >scoped GITHUB_TOKEN</span
+                    >
+                    <span class="ghc-chip" style="--chip: var(--ghc-purple)"
+                        >contents: read</span
+                    >
+                    <span class="ghc-chip" style="--chip: var(--ghc-purple)"
+                        >issues: read/write</span
+                    >
+                    <span class="ghc-chip" style="--chip: var(--ghc-purple)"
+                        >pull requests: read/write</span
+                    >
+                </div>
+            </div>
+            <div class="ghc-panel">
+                <h3>Claude never sees</h3>
+                <div class="ghc-chips">
+                    <span class="ghc-chip" style="--chip: var(--ghc-orange)"
+                        >your keychain</span
+                    >
+                    <span class="ghc-chip" style="--chip: var(--ghc-orange)"
+                        >your real gh credential</span
+                    >
+                    <span class="ghc-chip" style="--chip: var(--ghc-orange)"
+                        >git push</span
+                    >
+                    <span class="ghc-chip" style="--chip: var(--ghc-orange)"
+                        >anything past 7 days</span
+                    >
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SEVEN COMMANDS, ONE JOB -->
+    <section class="ghc-section">
+        <h2 class="ghc-eyebrow">// SEVEN COMMANDS, ONE JOB</h2>
+        <p class="ghc-lead--sm">
+            Everything hangs off <code>gh claude</code> — the launch is the
+            default.
+        </p>
+        <div class="ghc-cmdcard">
+            <div class="ghc-cmdcard__bar">
+                <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                >
+                    <polyline points="4 17 10 11 4 5" />
+                    <line x1="12" x2="20" y1="19" y2="19" />
+                </svg>
+                <span>gh claude --help</span>
+            </div>
+            <div class="ghc-cmdcard__list">
+                <div class="ghc-cmdrow">
+                    <code><span class="p">$</span> gh claude</code>
+                    <span class="cmt"
+                        ># ensure a valid token, then launch Claude here</span
+                    >
+                </div>
+                <div class="ghc-cmdrow">
+                    <code><span class="p">$</span> gh claude -- --resume</code>
+                    <span class="cmt"
+                        ># pass arguments through to claude after --</span
+                    >
+                </div>
+                <div class="ghc-cmdrow">
+                    <code><span class="p">$</span> gh claude login</code>
+                    <span class="cmt"
+                        ># force-create a fresh token, no launch</span
+                    >
+                </div>
+                <div class="ghc-cmdrow">
+                    <code><span class="p">$</span> gh claude status</code>
+                    <span class="cmt"
+                        ># account, expiry, and where the token lives</span
+                    >
+                </div>
+                <div class="ghc-cmdrow">
+                    <code><span class="p">$</span> gh claude verify</code>
+                    <span class="cmt"
+                        ># verify the binary's build provenance</span
+                    >
+                </div>
+                <div class="ghc-cmdrow">
+                    <code><span class="p">$</span> gh claude logout</code>
+                    <span class="cmt"># remove the stored token</span>
+                </div>
+                <div class="ghc-cmdrow">
+                    <code
+                        ><span class="p">$</span> gh claude --op --vault
+                        Engineering</code
+                    >
+                    <span class="cmt"
+                        ># keep the token in 1Password instead</span
+                    >
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- THREE STEPS -->
+    <section class="ghc-section ghc-section--last">
+        <h2 class="ghc-eyebrow">// THREE STEPS TO A SCOPED LAUNCH</h2>
+        <div class="ghc-conn ghc-steps">
+            <div class="ghc-step">
+                <div class="ghc-step__body">
+                    <div class="ghc-step__num">01</div>
+                    <h3>Install</h3>
+                    <p>
+                        One command. Needs the gh CLI (authenticated), git, and
+                        claude on your PATH.
+                    </p>
+                    <a class="ghc-step__alt" href="{{ 'install/' | url }}"
+                        >Alternative methods
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M5 12h14" />
+                            <path d="m12 5 7 7-7 7" />
+                        </svg>
+                    </a>
+                </div>
+                <div class="ghc-cmd">
+                    <span class="ghc-p">$</span>
+                    <code
+                        >gh extension install
+                        bitwise-media-group/gh-claude</code
+                    >
+                    <div class="md-code__nav">
+                        <button
+                            class="md-code__button"
+                            type="button"
+                            data-md-type="copy"
+                            title="Copy to clipboard"
+                            aria-label="Copy to clipboard"
+                        ></button>
+                    </div>
+                </div>
+            </div>
+            <div class="ghc-step">
+                <div class="ghc-step__body">
+                    <div class="ghc-step__num">02</div>
+                    <h3>Generate</h3>
+                    <p>
+                        Your browser opens the token page pre-filled — choose
+                        "All repositories", click Generate, paste it back (input
+                        hidden).
+                    </p>
+                </div>
+                <div class="ghc-cmd">
+                    <span class="ghc-p">$</span>
+                    <code>gh claude login</code>
+                    <div class="md-code__nav">
+                        <button
+                            class="md-code__button"
+                            type="button"
+                            data-md-type="copy"
+                            title="Copy to clipboard"
+                            aria-label="Copy to clipboard"
+                        ></button>
+                    </div>
+                </div>
+            </div>
+            <div class="ghc-step">
+                <div class="ghc-step__body">
+                    <div class="ghc-step__num">03</div>
+                    <h3>Launch</h3>
+                    <p>
+                        Claude starts with the scoped token wired into gh and
+                        git — and the token is reused until it expires.
+                    </p>
+                </div>
+                <div class="ghc-cmd">
+                    <span class="ghc-p">$</span>
+                    <code>gh claude</code>
+                    <div class="md-code__nav">
+                        <button
+                            class="md-code__button"
+                            type="button"
+                            data-md-type="copy"
+                            title="Copy to clipboard"
+                            aria-label="Copy to clipboard"
+                        ></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+<script>
+    // Wire the landing-page copy buttons. Delegated on document so it survives
+    // instant navigation; scoped to .ghc-copy / .ghc-cmd so it never touches
+    // zensical's own code-block copy buttons. Strips the leading "$ " prompt,
+    // then reuses zensical's own snackbar element so the feedback matches the
+    // native code-block copy button exactly.
+    document.addEventListener("click", function (e) {
+        var btn = e.target.closest(
+            ".ghc-copy .md-code__button, .ghc-cmd .md-code__button",
+        );
+        if (!btn) return;
+        var row = btn.closest(".ghc-copy, .ghc-cmd");
+        var code = row && row.querySelector("code");
+        if (!code) return;
+        navigator.clipboard
+            .writeText(code.textContent.replace(/^\s*\$\s+/, ""))
+            .then(function () {
+                btn.focus();
+                var dialog = document.querySelector(
+                    "[data-md-component=dialog]",
+                );
+                if (!dialog) return;
+                (
+                    dialog.querySelector(".md-dialog__inner") || dialog
+                ).textContent = "Copied to clipboard";
+                dialog.classList.add("md-dialog--active");
+                window.clearTimeout(dialog.ghcResetTimer);
+                dialog.ghcResetTimer = window.setTimeout(function () {
+                    dialog.classList.remove("md-dialog--active");
+                }, 2000);
+            });
+    });
+</script>
+{% endblock %} {% block content %}{% endblock %}
