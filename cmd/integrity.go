@@ -30,7 +30,14 @@ store, using "gh attestation verify". Needs network access to GitHub.
 
 By default it asserts only that the binary was built by this org's CI from this
 repository. Use --signer-workflow to pin the exact building workflow, or
---cert-identity for a signer-identity regexp.`,
+--cert-identity for a signer-identity regexp.
+
+On Apple Silicon macOS, gh ad-hoc re-signs extension binaries when it installs
+them, so the installed binary's digest matches no attestation. When direct
+verification fails there, this command instead downloads this version's release
+asset, verifies the asset's provenance, applies gh's install-time re-signature
+to the copy, and checks that the result is byte-identical to the running
+binary.`,
 		Args: cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			path, err := integrity.RunningBinaryPath()
@@ -41,6 +48,7 @@ repository. Use --signer-workflow to pin the exact building workflow, or
 				SignerWorkflow: signerWorkflow,
 				CertIdentity:   certIdentity,
 				JSON:           jsonOut,
+				Tag:            integrity.ReleaseTag(version),
 			})
 			if err != nil {
 				return err
