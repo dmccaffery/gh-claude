@@ -8,10 +8,14 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
+// prefillNow is the fixed clock for name assertions: 2 July 2026 -> "02072026".
+var prefillNow = time.Date(2026, time.July, 2, 15, 4, 5, 0, time.UTC)
+
 func TestCreationURL(t *testing.T) {
-	raw := CreationURL("my-laptop")
+	raw := CreationURL("my-laptop", prefillNow)
 	u, err := url.Parse(raw)
 	if err != nil {
 		t.Fatalf("CreationURL produced an unparseable URL: %v", err)
@@ -24,8 +28,8 @@ func TestCreationURL(t *testing.T) {
 	if got := q.Get("expires_in"); got != strconv.Itoa(ExpiresInDays) {
 		t.Errorf("expires_in = %q, want %q", got, strconv.Itoa(ExpiresInDays))
 	}
-	if got := q.Get("name"); got != "gh-claude (my-laptop)" {
-		t.Errorf("name = %q, want %q", got, "gh-claude (my-laptop)")
+	if got := q.Get("name"); got != "gh-claude (my-laptop 02072026)" {
+		t.Errorf("name = %q, want %q", got, "gh-claude (my-laptop 02072026)")
 	}
 	for perm, level := range Permissions {
 		if got := q.Get(perm); got != level {
@@ -38,26 +42,37 @@ func TestCreationURL(t *testing.T) {
 	}
 }
 
-func TestCreationURLNameCappedAt40(t *testing.T) {
+func TestTokenNameUsesShortHostname(t *testing.T) {
+	// Everything from the first period on is noise ("mac.lan" and "mac.local"
+	// are the same machine) and would waste the 40-char budget.
+	if got, want := tokenName("mac.local", prefillNow), "gh-claude (mac 02072026)"; got != want {
+		t.Errorf("name = %q, want %q", got, want)
+	}
+}
+
+func TestTokenNameCappedAt40KeepsDate(t *testing.T) {
 	long := strings.Repeat("x", 100)
-	q := mustQuery(t, CreationURL(long))
-	if name := q.Get("name"); len(name) > maxTokenNameLen {
+	name := tokenName(long, prefillNow)
+	if len(name) > maxTokenNameLen {
 		t.Errorf("name length = %d (%q), want <= %d", len(name), name, maxTokenNameLen)
 	}
-}
-
-func TestCreationURLNoHostname(t *testing.T) {
-	q := mustQuery(t, CreationURL(""))
-	if got := q.Get("name"); got != tokenNamePrefix {
-		t.Errorf("name = %q, want %q", got, tokenNamePrefix)
+	// The cap must trim the hostname, never the date suffix — the date is what
+	// keeps a renewal from colliding with the still-live previous token.
+	if !strings.HasSuffix(name, " 02072026)") {
+		t.Errorf("name = %q, want the date suffix to survive truncation", name)
 	}
 }
 
-func mustQuery(t *testing.T, raw string) url.Values {
-	t.Helper()
-	u, err := url.Parse(raw)
-	if err != nil {
-		t.Fatalf("unparseable URL %q: %v", raw, err)
+func TestTokenNameNoHostname(t *testing.T) {
+	if got, want := tokenName("", prefillNow), "gh-claude (02072026)"; got != want {
+		t.Errorf("name = %q, want %q", got, want)
 	}
-	return u.Query()
+}
+
+func TestTokenNameDiffersAcrossDays(t *testing.T) {
+	// A renewal happens while the previous token is still live; the day in the
+	// name is what makes the pre-filled names distinct.
+	if a, b := tokenName("mac", prefillNow), tokenName("mac", prefillNow.AddDate(0, 0, 7)); a == b {
+		t.Errorf("names for renewals a week apart are identical: %q", a)
+	}
 }

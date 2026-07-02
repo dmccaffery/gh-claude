@@ -6,6 +6,8 @@ package token
 import (
 	"net/url"
 	"strconv"
+	"strings"
+	"time"
 )
 
 // creationBaseURL is GitHub's fine-grained PAT creation page. It accepts the query
@@ -16,10 +18,17 @@ const creationBaseURL = "https://github.com/settings/personal-access-tokens/new"
 // ExpiresInDays is the requested token lifetime (GitHub allows 1–366).
 const ExpiresInDays = 7
 
-// tokenNamePrefix is the display name prefix; the machine hostname is appended
-// to help the user tell tokens apart in their GitHub settings. The combined
-// name is capped at GitHub's 40-character limit.
+// tokenNamePrefix is the display name prefix; the machine's short hostname and
+// the creation date are appended. Fine-grained PAT names are unique per user,
+// and a renewal typically happens while the previous token is still live, so
+// the date suffix is what keeps the pre-filled name from colliding with the
+// token it replaces. The combined name is capped at GitHub's 40-character limit.
 const tokenNamePrefix = "gh-claude"
+
+// tokenNameDateLayout renders the creation date as DDMMYYYY (e.g. 02072026).
+// Same-day renewals still collide, but that is a deliberate trade for a name
+// that stays short and scannable in GitHub's token list.
+const tokenNameDateLayout = "02012006"
 
 const maxTokenNameLen = 40
 
@@ -34,11 +43,11 @@ var Permissions = map[string]string{
 }
 
 // CreationURL builds the pre-filled token-creation URL for the given machine
-// hostname. The user still selects "All repositories" in the form (resource
-// access cannot be preselected via URL).
-func CreationURL(hostname string) string {
+// hostname and creation time. The user still selects "All repositories" in the
+// form (resource access cannot be preselected via URL).
+func CreationURL(hostname string, now time.Time) string {
 	v := url.Values{}
-	v.Set("name", tokenName(hostname))
+	v.Set("name", tokenName(hostname, now))
 	v.Set("description", "Temporary read-only-code credential for Claude Code (gh-claude). Choose \"All repositories\".")
 	v.Set("expires_in", strconv.Itoa(ExpiresInDays))
 	for perm, level := range Permissions {
@@ -48,14 +57,19 @@ func CreationURL(hostname string) string {
 	return creationBaseURL + "?" + v.Encode()
 }
 
-// tokenName returns the token display name, capped at GitHub's length limit.
-func tokenName(hostname string) string {
-	name := tokenNamePrefix
-	if hostname != "" {
-		name = tokenNamePrefix + " (" + hostname + ")"
+// tokenName returns the token display name: the prefix plus the short hostname
+// (up to the first period — "mac.lan" and "mac.local" are the same machine)
+// and the creation date. When the total exceeds GitHub's length limit the
+// hostname is trimmed, never the date: the date suffix is what keeps a renewal
+// from colliding with the still-live previous token.
+func tokenName(hostname string, now time.Time) string {
+	date := now.Format(tokenNameDateLayout)
+	host, _, _ := strings.Cut(hostname, ".")
+	if host == "" {
+		return tokenNamePrefix + " (" + date + ")"
 	}
-	if len(name) > maxTokenNameLen {
-		name = name[:maxTokenNameLen]
+	if max := maxTokenNameLen - len(tokenNamePrefix+" ( "+date+")"); len(host) > max {
+		host = host[:max]
 	}
-	return name
+	return tokenNamePrefix + " (" + host + " " + date + ")"
 }
