@@ -14,6 +14,5 @@ CHANGELOG.md
 .release-please-manifest.json
 docs/policy.json
 
-# Shared Makefile library submodule (linted in its own repo) and on-demand tool bin
-make/
-.bin/
+# Shared toolchain submodule (linted in its own repo)
+.mise/

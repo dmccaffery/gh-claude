@@ -1,0 +1,77 @@
+# Copyright 2026 Bitwise Media Group Ltd.
+# SPDX-License-Identifier: MIT
+#
+# gh-claude's repo-local tasks — the long tail the toolchain intentionally
+# omits, plus redefinitions of archetype tasks (this file is included after
+# the archetype, so a same-named task here wins).
+
+# Redefines the archetype go-build: gh-claude stamps its version into
+# main.version (there is no internal/version package), so the archetype's
+# default LDFLAGS — which target <module>/internal/version — don't apply.
+# `gh claude version` and the integrity check read this; releases inject the
+# real tag via GoReleaser (see .goreleaser.yaml). VERSION/LDFLAGS env override.
+[go-build]
+hide = true
+dir = "{{cwd}}"
+run = """
+set -eu
+version="${VERSION:-$(git describe --tags --always --dirty 2>/dev/null || echo dev)}"
+CGO_ENABLED=0 go build -trimpath -ldflags "${LDFLAGS:--s -w -X main.version=$version}" -o gh-claude .
+"""
+
+# Regenerate the CLI reference from the cobra command tree, then render the
+# site. (Kept repo-local: generating a CLI reference is app-specific; `serve`,
+# `sync`, and `docs-build` come from the archetype.) The extension is
+# distributed only through `gh extension install` (no Homebrew cask), so no man
+# pages are generated — the hidden `docs --format man` command keeps that
+# format available for ad-hoc use.
+[docs]
+description = "regenerate the CLI reference (docs/cli) and build the docs site"
+dir = "{{cwd}}"
+run = [
+  { task = "build" },
+  "./gh-claude docs --out docs/cli --format markdown",
+  { task = "docs-build" },
+]
+
+[install]
+description = "install the local build as a gh extension for end-to-end testing"
+dir = "{{cwd}}"
+run = [
+  { task = "build" },
+  "gh extension remove claude >/dev/null 2>&1 || true",
+  "gh extension install .",
+]
+
+# Security-policy authoring (see docs/security-policy.md): drives
+# internal/tools/policy, which builds the next revision, signs it with an
+# OpenSSH signature (`ssh-keygen -Y sign`, so POLICY_KEY can be a FIDO2
+# sk-ssh-ed25519 YubiKey handle), and verifies the result against the embedded
+# policy keys before moving it into place. Pass tool flags via ARGS, e.g.
+# ARGS='--revoke 0.1.2 --min-version 0.1.3'; run
+# `go run ./internal/tools/policy --help` for the full list, and invoke the
+# tool directly (without --policy) to create the very first policy.
+[policy]
+description = "renew or update and sign the security policy (POLICY=docs/policy.json ARGS=... for revocations etc.)"
+dir = "{{cwd}}"
+run = """
+set -eu
+go run ./internal/tools/policy \
+  --policy "${POLICY:-docs/policy.json}" \
+  --key "${POLICY_KEY:-$HOME/.ssh/id_sk_gh-claude-policy}" \
+  ${ARGS:-}
+"""
+
+# Redefines the archetype pr: gh-claude regenerates its CLI reference and
+# builds the docs site as part of the gate — commit still lands last.
+[pr]
+description = "full local gate before a pull request"
+run = [
+  { task = "tidy" },
+  { task = "fmt" },
+  { task = "lint" },
+  { task = "test" },
+  { task = "build" },
+  { task = "docs" },
+  { task = "commit" },
+]
